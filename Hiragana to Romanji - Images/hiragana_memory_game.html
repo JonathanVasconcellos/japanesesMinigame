@@ -1,0 +1,552 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Jogo da Memória - Palavras em Hiragana</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Japanese&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Noto Sans Japanese', Arial, sans-serif;
+      text-align: center;
+      margin: 20px;
+      background: linear-gradient(to bottom, #fff, #f8e1e1);
+      color: #333;
+      transition: all 0.3s ease;
+    }
+    body.dark-mode {
+      background: linear-gradient(to bottom, #1a1a1a, #2a2a2a);
+      color: #e0e0e0;
+    }
+    .menu {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+    body.dark-mode .menu {
+      background: #333;
+      box-shadow: 0 2px 5px rgba(255, 255, 255, 0.1);
+    }
+    .menu-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .game-container {
+      display: none;
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: center;
+      margin: 20px auto;
+      max-width: 1000px;
+      gap: 20px;
+    }
+    .board {
+      display: grid;
+      gap: 10px;
+      padding: 20px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      max-width: 650px;
+    }
+    body.dark-mode .board {
+      background: #333;
+      box-shadow: 0 2px 5px rgba(255, 255, 255, 0.1);
+    }
+    .game-info {
+      background: #fff;
+      padding: 15px;
+      border: 2px solid #d32f2f;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      min-width: 200px;
+      position: sticky;
+      top: 20px;
+    }
+    body.dark-mode .game-info {
+      background: #333;
+      border: 2px solid #ff5555;
+      box-shadow: 0 2px 5px rgba(255, 255, 255, 0.1);
+    }
+    .card {
+      width: 100px;
+      height: 100px;
+      background: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2em;
+      cursor: pointer;
+      border: 2px solid #d32f2f;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      color: #333;
+      overflow: hidden;
+    }
+    body.dark-mode .card {
+      background: #4a4a4a;
+      border: 2px solid #ff5555;
+      color: #fff;
+    }
+    .card.flipped {
+      background: #fff;
+      color: #333;
+      border: 2px solid #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    body.dark-mode .card.flipped {
+      background: #e0e0e0;
+      color: #333;
+      border: 2px solid #fff;
+    }
+    .card.matched {
+      background: #d4edda;
+      cursor: default;
+      color: #333;
+    }
+    body.dark-mode .card.matched {
+      background: #4a704a;
+      color: #fff;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      cursor: pointer;
+      background: #d32f2f;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+    body.dark-mode button {
+      background: #ff5555;
+      box-shadow: 0 2px 5px rgba(255, 255, 255, 0.2);
+    }
+    button:hover {
+      background: #b71c1c;
+    }
+    body.dark-mode button:hover {
+      background: #cc3333;
+    }
+    select {
+      padding: 5px;
+      font-size: 1em;
+      margin: 10px;
+      border: 2px solid #d32f2f;
+      border-radius: 5px;
+    }
+    body.dark-mode select {
+      border: 2px solid #ff5555;
+      background: #333;
+      color: #e0e0e0;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      padding: 20px;
+      border: 2px solid #d32f2f;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+    }
+    body.dark-mode .modal {
+      background: #333;
+      border: 2px solid #ff5555;
+    }
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+    }
+    .game-controls {
+      margin: 10px 0;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+    img {
+      max-width: 50px;
+      max-height: 50px;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Jogo da Memória - Palavras em Hiragana</h1>
+  <div class="menu">
+    <div>
+      <label for="difficulty">Dificuldade:</label>
+      <select id="difficulty">
+        <option value="basic">Básico</option>
+        <option value="intermediate">Intermediário</option>
+        <option value="advanced">Avançado</option>
+      </select>
+    </div>
+    <div>
+      <label for="pairCount">Número de Pares:</label>
+      <select id="pairCount">
+        <option value="4">4 (8 cartas)</option>
+        <option value="8">8 (16 cartas)</option>
+        <option value="10">10 (20 cartas)</option>
+        <option value="15">15 (30 cartas)</option>
+      </select>
+    </div>
+    <div class="menu-buttons">
+      <button onclick="startGame()">Iniciar Jogo</button>
+      <button id="musicToggle" onclick="toggleMusic()">Pausar Música</button>
+      <button id="themeToggle" onclick="toggleTheme()">Modo Escuro</button>
+    </div>
+  </div>
+  <div class="game-controls" style="display: none;">
+    <button onclick="returnToMenu()">Voltar ao Menu</button>
+    <button id="musicToggle" onclick="toggleMusic()">Pausar Música</button>
+    <button id="themeToggle" onclick="toggleTheme()">Modo Escuro</button>
+  </div>
+  <div class="game-container" id="gameContainer">
+    <div class="board" id="gameBoard"></div>
+    <div class="game-info" id="gameInfo">
+      <p>Tempo: <span id="timeElapsed">0 min 0 seg</span></p>
+      <p>Tentativas: <span id="attempts">0</span></p>
+      <p>Acertos: <span id="matches">0</span></p>
+    </div>
+  </div>
+  <div class="modal-overlay" id="modalOverlay"></div>
+  <div class="modal" id="winModal">
+    <h2>Parabéns!</h2>
+    <p id="winMessage"></p>
+    <button onclick="startGame()">Jogar Novamente</button>
+  </div>
+
+  <script>
+    // Banco de palavras
+    const words = {
+      basic: [
+        { hiragana: "ねこ", romanji: "neko", image: "imagens/neko.png" },
+        { hiragana: "いぬ", romanji: "inu", image: "imagens/inu.png" },
+        { hiragana: "さかな", romanji: "sakana", image: "imagens/sakana.png" },
+        { hiragana: "りんご", romanji: "ringo", image: "imagens/ringo.png" },
+        { hiragana: "みず", romanji: "mizu", image: "imagens/mizu.png" },
+        { hiragana: "くま", romanji: "kuma", image: "imagens/kuma.png" }, // urso
+        { hiragana: "とり", romanji: "tori", image: "imagens/tori.png" }, // pássaro
+        { hiragana: "うさぎ", romanji: "usagi", image: "imagens/usagi.png" }, // coelho
+        { hiragana: "みかん", romanji: "mikan", image: "imagens/mikan.png" }, // tangerina
+        { hiragana: "やま", romanji: "yama", image: "imagens/yama.png" } // montanha
+      ],
+      intermediate: [
+        { hiragana: "おちゃ", romanji: "ocha", image: "imagens/ocha.png" },
+        { hiragana: "パン", romanji: "pan", image: "imagens/pan.png" },
+        { hiragana: "くるま", romanji: "kuruma", image: "imagens/kuruma.png" },
+        { hiragana: "ほん", romanji: "hon", image: "imagens/hon.png" },
+        { hiragana: "てんき", romanji: "tenki", image: "imagens/tenki.png" },
+        { hiragana: "かさ", romanji: "kasa", image: "imagens/kasa.png" }, // guarda-chuva
+        { hiragana: "つくえ", romanji: "tsukue", image: "imagens/tsukue.png" }, // mesa
+        { hiragana: "いす", romanji: "isu", image: "imagens/isu.png" }, // cadeira
+        { hiragana: "でんわ", romanji: "denwa", image: "imagens/denwa.png" }, // telefone
+        { hiragana: "かばん", romanji: "kaban", image: "imagens/kaban.png" } // mochila
+      ],
+      advanced: [
+        { hiragana: "こんにちは", romanji: "konnichiwa", image: "imagens/konnichiwa.png" },
+        { hiragana: "ありがとう", romanji: "arigatou", image: "imagens/arigatou.png" },
+        { hiragana: "さようなら", romanji: "sayounara", image: "imagens/sayounara.png" },
+        { hiragana: "おはよう", romanji: "ohayou", image: "imagens/ohayou.png" },
+        { hiragana: "いってきます", romanji: "itterasshai", image: "imagens/itterasshai.png" },
+        { hiragana: "おやすみ", romanji: "oyasumi", image: "imagens/oyasumi.png" }, // boa noite
+        { hiragana: "すみません", romanji: "sumimasen", image: "imagens/sumimasen.png" }, // desculpe-me
+        { hiragana: "おねがいします", romanji: "onegaishimasu", image: "imagens/onegaishimasu.png" }, // por favor
+        { hiragana: "はじめまして", romanji: "hajimemashite", image: "imagens/hajimemashite.png" }, // prazer em conhecê-lo
+        { hiragana: "いらっしゃい", romanji: "irasshai", image: "imagens/irasshai.png" } // bem-vindo
+      ]
+    };
+
+    // Carregar sons com tratamento de erro
+    const flipSound = new Audio("audios/flip.mp3");
+    const matchSound = new Audio("audios/match.mp3");
+    const errorSound = new Audio("audios/error.mp3");
+    const winSound = new Audio("audios/win.mp3");
+    const clickSound = new Audio("audios/click.mp3");
+    const backgroundMusic = new Audio("audios/background.mp3");
+
+    const sounds = [flipSound, matchSound, errorSound, winSound, clickSound, backgroundMusic];
+
+    // Verificar se os sons foram carregados
+    sounds.forEach(sound => {
+      sound.addEventListener('error', () => {
+        console.error(`Erro ao carregar o arquivo de áudio: ${sound.src}`);
+      });
+      sound.addEventListener('canplaythrough', () => {
+        console.log(`Áudio carregado com sucesso: ${sound.src}`);
+      });
+    });
+
+    backgroundMusic.loop = true;
+    backgroundMusic.volume = 0.3;
+
+    window.addEventListener('load', () => {
+      backgroundMusic.play().catch(e => console.log("Erro ao iniciar música:", e));
+    });
+    document.addEventListener('click', () => {
+      backgroundMusic.play().catch(e => console.log("Erro ao iniciar música:", e));
+    }, { once: true });
+
+    let isMusicPlaying = true;
+    function toggleMusic() {
+      clickSound.play().catch(e => console.log("Erro ao tocar clickSound:", e));
+      if (isMusicPlaying) {
+        backgroundMusic.pause();
+        document.querySelectorAll('#musicToggle').forEach(btn => btn.textContent = "Retomar Música");
+        isMusicPlaying = false;
+      } else {
+        backgroundMusic.play().catch(e => console.log("Erro ao retomar música:", e));
+        document.querySelectorAll('#musicToggle').forEach(btn => btn.textContent = "Pausar Música");
+        isMusicPlaying = true;
+      }
+    }
+
+    function toggleTheme() {
+      clickSound.play().catch(e => console.log("Erro ao tocar clickSound:", e));
+      document.body.classList.toggle('dark-mode');
+      const isDarkMode = document.body.classList.contains('dark-mode');
+      document.querySelectorAll('#themeToggle').forEach(btn => btn.textContent = isDarkMode ? "Modo Claro" : "Modo Escuro");
+      localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+    }
+
+    if (localStorage.getItem('theme') === 'dark') {
+      document.body.classList.add('dark-mode');
+      document.querySelectorAll('#themeToggle').forEach(btn => btn.textContent = "Modo Claro");
+    }
+
+    let firstCard = null;
+    let secondCard = null;
+    let lockBoard = false;
+    let matchesFound = 0;
+    let totalPairs = 0;
+    let startTime = 0;
+    let attempts = 0;
+    let timerInterval = null;
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function updateTime() {
+      const elapsed = (Date.now() - startTime) / 1000;
+      const minutes = Math.floor(elapsed / 60);
+      const seconds = Math.round(elapsed % 60);
+      document.getElementById("timeElapsed").textContent = `${minutes} min ${seconds} seg`;
+    }
+
+    function startGame() {
+      clickSound.play().catch(e => console.log("Erro ao tocar clickSound:", e));
+      const difficulty = document.getElementById("difficulty").value;
+      const pairCount = parseInt(document.getElementById("pairCount").value);
+      const gameContainer = document.getElementById("gameContainer");
+      const winModal = document.getElementById("winModal");
+      const modalOverlay = document.getElementById("modalOverlay");
+
+      winModal.style.display = "none";
+      modalOverlay.style.display = "none";
+      gameContainer.style.display = "none";
+
+      if (![4, 8, 10, 15].includes(pairCount)) {
+        console.error("Número de pares inválido:", pairCount);
+        return;
+      }
+
+      let wordSet = words[difficulty];
+      let selectedWords = [];
+      if (wordSet.length < pairCount) {
+        // Repetir palavras aleatoriamente até atingir o número de pares
+        while (selectedWords.length < pairCount) {
+          const randomWord = wordSet[Math.floor(Math.random() * wordSet.length)];
+          selectedWords.push(randomWord);
+        }
+        selectedWords = shuffle(selectedWords); // Embaralhar as palavras repetidas
+      } else {
+        selectedWords = shuffle(wordSet.slice(0, pairCount));
+      }
+
+      const cards = [];
+      selectedWords.forEach(word => {
+        cards.push({ type: "hiragana", value: word.hiragana, pairId: word.hiragana });
+        cards.push({ type: "romanji", value: `${word.romanji}<br><img src="${word.image}" alt="${word.romanji}">`, pairId: word.hiragana });
+      });
+
+      console.log(`Total de cartas geradas: ${cards.length}`); // Log para depuração
+
+      const shuffledCards = shuffle(cards);
+      const gameBoard = document.getElementById("gameBoard");
+      const totalCards = pairCount * 2;
+      const columns = Math.min(Math.ceil(Math.sqrt(totalCards)), 6); // Limita a 6 colunas
+      const rows = Math.ceil(totalCards / columns);
+      gameBoard.style.gridTemplateColumns = `repeat(${columns}, 100px)`;
+      gameBoard.style.gridTemplateRows = `repeat(${rows}, 100px)`; // Define o número de linhas
+      gameBoard.innerHTML = "";
+      firstCard = null;
+      secondCard = null;
+      lockBoard = false;
+      matchesFound = 0;
+      attempts = 0;
+      totalPairs = pairCount;
+      startTime = Date.now();
+
+      document.getElementById("timeElapsed").textContent = "0 min 0 seg";
+      document.getElementById("attempts").textContent = "0";
+      document.getElementById("matches").textContent = "0";
+
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(updateTime, 1000);
+
+      shuffledCards.forEach((card, index) => {
+        const cardElement = document.createElement("div");
+        cardElement.classList.add("card");
+        cardElement.dataset.type = card.type;
+        cardElement.dataset.pairId = card.pairId;
+        cardElement.dataset.value = card.value;
+        cardElement.innerHTML = "?";
+        cardElement.addEventListener("click", () => flipCard(cardElement));
+        gameBoard.appendChild(cardElement);
+      });
+
+      document.querySelector('.menu').style.display = 'none';
+      document.querySelector('.game-controls').style.display = 'flex';
+      gameContainer.style.display = 'flex';
+    }
+
+    function returnToMenu() {
+      clickSound.play().catch(e => console.log("Erro ao tocar clickSound:", e));
+      document.querySelector('.menu').style.display = 'block';
+      document.querySelector('.game-controls').style.display = 'none';
+      document.getElementById("gameContainer").style.display = 'none';
+      document.getElementById("winModal").style.display = 'none';
+      document.getElementById("modalOverlay").style.display = 'none';
+      if (timerInterval) clearInterval(timerInterval);
+    }
+
+    function flipCard(card) {
+      if (lockBoard || card === firstCard || card.classList.contains("matched")) return;
+
+      flipSound.play().catch(e => console.log("Erro ao tocar flipSound:", e));
+      card.classList.add("flipped");
+      card.innerHTML = card.dataset.type === "hiragana" ? card.dataset.pairId : card.dataset.value;
+
+      if (!firstCard) {
+        firstCard = card;
+        return;
+      }
+
+      secondCard = card;
+      lockBoard = true;
+
+      attempts += 1;
+      document.getElementById("attempts").textContent = attempts;
+
+      checkMatch();
+    }
+
+    function checkMatch() {
+      const isMatch = firstCard.dataset.pairId === secondCard.dataset.pairId &&
+                      ((firstCard.dataset.type === "hiragana" && secondCard.dataset.type === "romanji") ||
+                       (firstCard.dataset.type === "romanji" && secondCard.dataset.type === "hiragana"));
+
+      if (isMatch) {
+        matchSound.play().catch(e => console.log("Erro ao tocar matchSound:", e));
+        firstCard.classList.add("matched");
+        secondCard.classList.add("matched");
+        matchesFound += 1;
+        document.getElementById("matches").textContent = matchesFound;
+        console.log(`Par encontrado! matchesFound: ${matchesFound}, totalPairs: ${totalPairs}`);
+        resetTurn();
+
+        if (matchesFound === totalPairs) {
+          console.log("Jogo finalizado! Exibindo modal de vitória.");
+          const endTime = Date.now();
+          const timeTaken = (endTime - startTime) / 1000;
+          const minutes = Math.floor(timeTaken / 60);
+          const seconds = Math.round(timeTaken % 60);
+          const winModal = document.getElementById("winModal");
+          const modalOverlay = document.getElementById("modalOverlay");
+          document.getElementById("winMessage").textContent = `Você completou o jogo em ${minutes} min e ${seconds} seg com ${attempts} tentativas!`;
+          winModal.style.display = "block";
+          modalOverlay.style.display = "block";
+          winSound.play().catch(e => console.log("Erro ao tocar winSound:", e));
+          if (timerInterval) clearInterval(timerInterval);
+        }
+      } else {
+        errorSound.play().catch(e => console.log("Erro ao tocar errorSound:", e));
+        setTimeout(() => {
+          firstCard.classList.remove("flipped");
+          secondCard.classList.remove("flipped");
+          firstCard.innerHTML = "?";
+          secondCard.innerHTML = "?";
+          resetTurn();
+        }, 1000);
+      }
+    }
+
+    function resetTurn() {
+      firstCard = null;
+      secondCard = null;
+      lockBoard = false;
+    }
+  </script>
+</body>
+</html>
