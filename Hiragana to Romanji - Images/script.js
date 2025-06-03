@@ -56,14 +56,50 @@
       if (!loaded.has(word.image)) {
         const img = new Image();
         img.src = word.image;
+        img.onerror = () => console.warn(`Imagem não encontrada: ${word.image}`);
         loaded.add(word.image);
       }
     });
   }
+
+  // Inicializa o estado da página ao carregar
+  function initializePage() {
+    const winModal = document.getElementById("winModal");
+    const modalOverlay = document.getElementById("modalOverlay");
+    winModal.style.display = "none";
+    modalOverlay.style.display = "none";
+    winModal.setAttribute('aria-hidden', 'true');
+    modalOverlay.setAttribute('aria-hidden', 'true');
+    document.querySelector('.menu').style.display = 'block';
+    document.querySelector('.game-controls').style.display = 'none';
+    document.getElementById("gameContainer").style.display = 'none';
+
+    // Inicializa os textos dos botões de música e tema
+    initializeButtonLabels();
+  }
+
+  // Função para inicializar os textos dos botões com base no estado atual
+  function initializeButtonLabels() {
+    // Tema
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+      btn.textContent = isDarkMode ? "Modo Claro" : "Modo Escuro";
+      console.log('Botão de tema encontrado:', btn.textContent); // Depuração
+    });
+
+    // Música
+    document.querySelectorAll('.music-toggle-btn').forEach(btn => {
+      btn.textContent = isMusicPlaying ? "Pausar Música" : "Retomar Música";
+      console.log('Botão de música encontrado:', btn.textContent); // Depuração
+    });
+  }
+
   window.addEventListener('load', () => {
+    initializePage();
     preloadAllImages();
     backgroundMusic.play().catch(() => {});
   });
+
   document.addEventListener('click', () => {
     backgroundMusic.play().catch(() => {});
   }, { once: true });
@@ -73,24 +109,25 @@
     clickSound.play();
     if (isMusicPlaying) {
       backgroundMusic.pause();
-      document.querySelectorAll('.music-toggle-btn').forEach(btn => btn.textContent = "Retomar Música");
       isMusicPlaying = false;
     } else {
       backgroundMusic.play().catch(() => {});
-      document.querySelectorAll('.music-toggle-btn').forEach(btn => btn.textContent = "Pausar Música");
       isMusicPlaying = true;
     }
+    initializeButtonLabels(); // Atualiza os textos dos botões
   }
+
   function toggleTheme() {
     clickSound.play();
     document.body.classList.toggle('dark-mode');
     const isDarkMode = document.body.classList.contains('dark-mode');
-    document.querySelectorAll('.theme-toggle-btn').forEach(btn => btn.textContent = isDarkMode ? "Modo Claro" : "Modo Escuro");
     localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+    initializeButtonLabels(); // Atualiza os textos dos botões
   }
+
+  // Ajuste na inicialização do tema para refletir o estado salvo
   if (localStorage.getItem('theme') === 'dark') {
     document.body.classList.add('dark-mode');
-    document.querySelectorAll('.theme-toggle-btn').forEach(btn => btn.textContent = "Modo Claro");
   }
 
   // Variáveis de estado do jogo
@@ -119,6 +156,7 @@
 
   // Inicia o jogo
   window.startGame = function() {
+    console.log("startGame chamado!");
     clickSound.play();
     // Esconde o título ao iniciar o jogo
     document.querySelector('h1').style.display = 'none';
@@ -130,6 +168,8 @@
 
     winModal.style.display = "none";
     modalOverlay.style.display = "none";
+    winModal.setAttribute('aria-hidden', 'true');
+    modalOverlay.setAttribute('aria-hidden', 'true');
     gameContainer.style.display = "none";
 
     if (![10, 15, 20].includes(pairCount)) {
@@ -153,7 +193,7 @@
     const cards = [];
     selectedWords.forEach(word => {
       cards.push({ type: "hiragana", value: word.hiragana, pairId: word.hiragana });
-      cards.push({ type: "romanji", value: `${word.romanji}<br><img src=\"${word.image}\" alt=\"${word.romanji}\">`, pairId: word.hiragana });
+      cards.push({ type: "romanji", value: `<div class="image-container"><img src="${word.image}" alt="${word.romanji}"></div><span>${word.romanji}</span>`, pairId: word.hiragana });
     });
 
     const shuffledCards = shuffle(cards);
@@ -173,11 +213,6 @@
     totalPairs = pairCount;
     startTime = Date.now();
 
-    // Removido: atualizações de tempo, tentativas e acertos na tela
-
-    if (timerInterval) clearInterval(timerInterval);
-    timerInterval = setInterval(updateTime, 1000);
-
     // Otimização: usar DocumentFragment para renderizar as cartas
     const fragment = document.createDocumentFragment();
     shuffledCards.forEach((card, index) => {
@@ -195,10 +230,12 @@
     document.querySelector('.menu').style.display = 'none';
     document.querySelector('.game-controls').style.display = 'flex';
     gameContainer.style.display = 'flex';
+    initializeButtonLabels(); // Atualiza os textos dos botões nos controles do jogo
   };
 
   // Retorna ao menu
   window.returnToMenu = function() {
+    console.log("returnToMenu chamado!");
     clickSound.play();
     // Exibe o título ao retornar ao menu
     document.querySelector('h1').style.display = 'block';
@@ -207,7 +244,10 @@
     document.getElementById("gameContainer").style.display = 'none';
     document.getElementById("winModal").style.display = 'none';
     document.getElementById("modalOverlay").style.display = 'none';
+    document.getElementById("winModal").setAttribute('aria-hidden', 'true');
+    document.getElementById("modalOverlay").setAttribute('aria-hidden', 'true');
     if (timerInterval) clearInterval(timerInterval);
+    initializeButtonLabels(); // Atualiza os textos dos botões no menu
   };
 
   // Lógica de virar carta
@@ -222,8 +262,7 @@
     }
     secondCard = card;
     lockBoard = true;
-    attempts += 1;
-    // Removido: document.getElementById("attempts").textContent = attempts;
+    attempts++;
     checkMatch();
   }
 
@@ -231,12 +270,12 @@
   function checkMatch() {
     const isMatch = firstCard.dataset.pairId === secondCard.dataset.pairId &&
       ((firstCard.dataset.type === "hiragana" && secondCard.dataset.type === "romanji") ||
-        (firstCard.dataset.type === "romanji" && secondCard.dataset.type === "hiragana"));
+        (secondCard.dataset.type === "hiragana" && firstCard.dataset.type === "romanji"));
     if (isMatch) {
       matchSound.play();
       firstCard.classList.add("matched");
       secondCard.classList.add("matched");
-      matchesFound += 1;
+      matchesFound++;
       setTimeout(() => {
         resetTurn();
         if (matchesFound === totalPairs) {
@@ -253,6 +292,10 @@
             `<p><strong>Acertos:</strong> ${matchesFound}</p>`;
           winModal.style.display = "block";
           modalOverlay.style.display = "block";
+          winModal.setAttribute('aria-hidden', 'false');
+          modalOverlay.setAttribute('aria-hidden', 'false');
+          // Foco automático no botão "Jogar Novamente"
+          document.getElementById("playAgainBtn").focus();
           winSound.play();
           if (timerInterval) clearInterval(timerInterval);
         }

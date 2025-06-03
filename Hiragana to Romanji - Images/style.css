@@ -98,7 +98,7 @@ body.dark-mode .game-info {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.2em;
+  font-size: 1.5em;
   font-family: 'Noto Sans Japanese', Arial, sans-serif;
   cursor: pointer;
   user-select: none;
@@ -106,6 +106,8 @@ body.dark-mode .game-info {
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   color: #333;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 body.dark-mode .card {
   background: #4a4a4a;
@@ -115,15 +117,15 @@ body.dark-mode .card {
 .card.flipped {
   background: #fff;
   border: 2px solid #333;
-  color: #333;
+  color: #000;
 }
 body.dark-mode .card.flipped {
   background: #e0e0e0;
   border: 2px solid #fff;
-  color: #333;
+  color: #000;
 }
 .card.flipped span {
-  font-size: 2.5em;
+  font-size: 1.2em;
   font-family: 'Noto Sans Japanese', Arial, sans-serif;
 }
 .card.matched {
@@ -135,29 +137,47 @@ body.dark-mode .card.matched {
   background: #4a704a;
   color: #fff;
 }
-.card[data-type="romanji"] {
-  font-size: 1.3em;
+body.dark-mode .card.matched[data-type="romanji"] span {
+  color: #fff !important;
 }
-button {
-  padding: 10px 20px;
+.card[data-type="romanji"]:not(.flipped) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.card[data-type="romanji"].flipped {
   font-size: 1em;
-  margin: 5px;
-  cursor: pointer;
-  background: #d32f2f;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 5px;
+}
+.card[data-type="romanji"] .image-container {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.card[data-type="romanji"] img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.card[data-type="romanji"] span {
+  font-size: 0.9em;
+  line-height: 1.2;
+  margin-bottom: 5px;
+  color: #000;
+  word-break: break-word;
+  white-space: normal;
+}
+body.dark-mode .card[data-type="romanji"]:not(.flipped) {
   color: #fff;
-  border: none;
-  border-radius: 5px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
-body.dark-mode button {
-  background: #ff5555;
-  box-shadow: 0 2px 5px rgba(255, 255, 255, 0.2);
-}
-button:hover {
-  background: #b71c1c;
-}
-body.dark-mode button:hover {
-  background: #cc3333;
+body.dark-mode .card[data-type="romanji"].flipped span {
+  color: #000;
 }
 select {
   padding: 5px;
@@ -165,49 +185,63 @@ select {
   margin: 10px;
   border: 2px solid #d32f2f;
   border-radius: 5px;
+  background: #fff;
+  color: #333;
 }
 body.dark-mode select {
   border: 2px solid #ff5555;
   background: #333;
   color: #e0e0e0;
 }
-.modal {
+#modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5); /* Fundo escurecido */
+  z-index: 1000;
   display: none;
+}
+#winModal {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   background: #fff;
   padding: 20px;
-  border: 2px solid #d32f2f;
   border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  z-index: 1000;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  z-index: 1001;
+  display: none;
+  text-align: center;
+  max-width: 90%;
+  width: 400px;
+  border: 2px solid #d32f2f;
 }
-body.dark-mode .modal {
+body.dark-mode #winModal {
   background: #333;
   border: 2px solid #ff5555;
+  color: #e0e0e0;
+  box-shadow: 0 5px 15px rgba(255, 255, 255, 0.1);
 }
-.modal-overlay {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 999;
+#winModal h2 {
+  margin-top: 0;
+  font-size: 1.5em;
+  color: #d32f2f;
 }
-.game-controls {
+body.dark-mode #winModal h2 {
+  color: #ff5555;
+}
+#winModal p {
   margin: 10px 0;
-  display: flex;
-  justify-content: center;
-  gap: 10px;
+  font-size: 1.1em;
 }
-img {
-  max-width: 50px;
-  max-height: 50px;
-  margin-top: 5px;
+#finalStats {
+  margin: 15px 0;
+}
+#winModal button {
+  margin: 5px;
 }
 @media (max-width: 600px) {
   html, body {
@@ -262,9 +296,37 @@ img {
     max-width: 70px;
     height: 22vw;
     max-height: 70px;
-    font-size: 1.1em;
+    font-size: 1em;
     border-radius: 6px;
     box-sizing: border-box;
+    overflow: hidden;
+  }
+  .card[data-type="romanji"]:not(.flipped) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .card[data-type="romanji"].flipped {
+    padding: 3px;
+  }
+  .card[data-type="romanji"] .image-container {
+    width: 30px;
+    height: 30px;
+    margin: 0 auto;
+  }
+  .card[data-type="romanji"] img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .card[data-type="romanji"] span {
+    font-size: 0.7em;
+    margin-bottom: 3px;
+    word-break: break-word;
+    white-space: normal;
+  }
+  .card.flipped span {
+    font-size: 1em;
   }
   /* Ajuste para grids maiores (16, 20, 30 cartas) */
   #gameBoard[style*="repeat(4, 80px)"] {
@@ -284,8 +346,33 @@ img {
   }
   .card,
   .card.flipped span {
-    font-size: 2em;
+    font-size: 1.2em;
     font-family: 'Noto Sans Japanese', Arial, sans-serif;
+  }
+  select {
+    padding: 5px;
+    font-size: 0.9em;
+    margin: 5px;
+    border: 2px solid #d32f2f;
+    border-radius: 5px;
+    background: #fff;
+    color: #333;
+  }
+  body.dark-mode select {
+    border: 2px solid #ff5555;
+    background: #333;
+    color: #e0e0e0;
+  }
+  #winModal {
+    width: 90%;
+    max-width: 300px;
+    padding: 15px;
+  }
+  #winModal h2 {
+    font-size: 1.3em;
+  }
+  #winModal p {
+    font-size: 1em;
   }
 }
 @media (max-width: 700px) {
@@ -296,7 +383,6 @@ img {
     margin: 0;
     padding: 0;
     overflow-x: hidden;
-    /* Remover overflow-y: hidden para permitir atualizar a página */
   }
   main {
     min-height: 100vh;
@@ -378,6 +464,20 @@ img {
   .board[data-cards='20'] .card {
     font-size: 0.85em;
   }
+  select {
+    padding: 5px;
+    font-size: 0.9em;
+    margin: 5px;
+    border: 2px solid #d32f2f;
+    border-radius: 5px;
+    background: #fff;
+    color: #333;
+  }
+  body.dark-mode select {
+    border: 2px solid #ff5555;
+    background: #333;
+    color: #e0e0e0;
+  }
 }
 @media (min-width: 701px) {
   .board[data-cards='30'] {
@@ -401,6 +501,4 @@ img {
 .card.flipped img {
   display: block;
   margin: 0 auto;
-  max-width: 40px;
-  max-height: 40px;
 }

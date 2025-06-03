@@ -29,14 +29,14 @@
       </div>
       <div class="menu-buttons">
         <button onclick="startGame()" aria-label="Iniciar Jogo">Iniciar Jogo</button>
-        <button id="musicToggle" onclick="toggleMusic()" aria-label="Pausar Música">Pausar Música</button>
-        <button id="themeToggle" onclick="toggleTheme()" aria-label="Alternar tema">Modo Escuro</button>
+        <button class="music-toggle-btn" onclick="toggleMusic()" aria-label="Pausar Música">Pausar Música</button>
+        <button class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Alternar tema">Modo Escuro</button>
       </div>
     </div>
     <div class="game-controls" style="display: none;">
       <button onclick="returnToMenu()" aria-label="Voltar ao Menu">Voltar ao Menu</button>
-      <button id="musicToggle" onclick="toggleMusic()" aria-label="Pausar Música">Pausar Música</button>
-      <button id="themeToggle" onclick="toggleTheme()" aria-label="Alternar tema">Modo Escuro</button>
+      <button class="music-toggle-btn" onclick="toggleMusic()" aria-label="Pausar Música">Pausar Música</button>
+      <button class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Alternar tema">Modo Escuro</button>
     </div>
     <div class="game-container" id="gameContainer">
       <div class="board" id="gameBoard"></div>
@@ -46,7 +46,8 @@
       <h2>Parabéns!</h2>
       <p id="winMessage"></p>
       <div id="finalStats"></div>
-      <button onclick="startGame()">Jogar Novamente</button>
+      <button id="playAgainBtn" onclick="startGame()">Jogar Novamente</button>
+      <button onclick="returnToMenu()">Menu Principal</button>
     </div>
   </main>
   <script src="script.js"></script>
