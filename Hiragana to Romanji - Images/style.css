@@ -1,0 +1,406 @@
+body {
+  font-family: 'Noto Sans Japanese', Arial, sans-serif;
+  text-align: center;
+  margin: 20px;
+  background: linear-gradient(to bottom, #fff, #f8e1e1);
+  color: #333;
+  transition: all 0.3s ease;
+}
+body.dark-mode {
+  background: linear-gradient(to bottom, #1a1a1a, #2a2a2a);
+  color: #e0e0e0;
+}
+.menu {
+  max-width: 600px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+body.dark-mode .menu {
+  background: #333;
+  box-shadow: 0 2px 5px rgba(255, 255, 255, 0.1);
+}
+.menu-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+  width: 100%;
+}
+button {
+  padding: 10px 20px;
+  font-size: 1em;
+  margin: 5px;
+  cursor: pointer;
+  background: #d32f2f;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+body.dark-mode button {
+  background: #ff5555;
+  box-shadow: 0 2px 5px rgba(255, 255, 255, 0.2);
+}
+button:hover {
+  background: #b71c1c;
+}
+body.dark-mode button:hover {
+  background: #cc3333;
+}
+.game-controls {
+  margin: 10px 0;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+.game-container {
+  display: none;
+  flex-direction: row;
+  justify-content: center;
+  gap: 20px;
+  margin: 0 auto;
+  max-width: 800px;
+}
+.board {
+  display: grid;
+  gap: 8px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+body.dark-mode .board {
+  background: #333;
+  box-shadow: 0 2px 5px rgba(255, 255, 255, 0.1);
+}
+.game-info {
+  background: #fff;
+  padding: 15px;
+  border: 2px solid #d32f2f;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  min-width: 200px;
+  position: sticky;
+  top: 20px;
+}
+body.dark-mode .game-info {
+  background: #333;
+  border: 2px solid #ff5555;
+  box-shadow: 0 2px 5px rgba(255, 255, 255, 0.1);
+}
+.card {
+  width: 80px;
+  height: 80px;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2em;
+  font-family: 'Noto Sans Japanese', Arial, sans-serif;
+  cursor: pointer;
+  user-select: none;
+  border: 2px solid #d32f2f;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  color: #333;
+}
+body.dark-mode .card {
+  background: #4a4a4a;
+  border: 2px solid #ff5555;
+  color: #fff;
+}
+.card.flipped {
+  background: #fff;
+  border: 2px solid #333;
+  color: #333;
+}
+body.dark-mode .card.flipped {
+  background: #e0e0e0;
+  border: 2px solid #fff;
+  color: #333;
+}
+.card.flipped span {
+  font-size: 2.5em;
+  font-family: 'Noto Sans Japanese', Arial, sans-serif;
+}
+.card.matched {
+  background: #d4edda;
+  cursor: default;
+  color: #333;
+}
+body.dark-mode .card.matched {
+  background: #4a704a;
+  color: #fff;
+}
+.card[data-type="romanji"] {
+  font-size: 1.3em;
+}
+button {
+  padding: 10px 20px;
+  font-size: 1em;
+  margin: 5px;
+  cursor: pointer;
+  background: #d32f2f;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+body.dark-mode button {
+  background: #ff5555;
+  box-shadow: 0 2px 5px rgba(255, 255, 255, 0.2);
+}
+button:hover {
+  background: #b71c1c;
+}
+body.dark-mode button:hover {
+  background: #cc3333;
+}
+select {
+  padding: 5px;
+  font-size: 1em;
+  margin: 10px;
+  border: 2px solid #d32f2f;
+  border-radius: 5px;
+}
+body.dark-mode select {
+  border: 2px solid #ff5555;
+  background: #333;
+  color: #e0e0e0;
+}
+.modal {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  padding: 20px;
+  border: 2px solid #d32f2f;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+}
+body.dark-mode .modal {
+  background: #333;
+  border: 2px solid #ff5555;
+}
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+.game-controls {
+  margin: 10px 0;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+img {
+  max-width: 50px;
+  max-height: 50px;
+  margin-top: 5px;
+}
+@media (max-width: 600px) {
+  html, body {
+    width: 100vw;
+    height: 100vh;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+  body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    box-sizing: border-box;
+    overflow-x: hidden;
+  }
+  .game-container {
+    flex-direction: column;
+    min-height: 100vh;
+    min-width: 100vw;
+    width: 100vw;
+    height: 100vh;
+    box-sizing: border-box;
+    margin: 0;
+    border-radius: 0;
+    padding: 0;
+    align-items: stretch;
+    justify-content: flex-start;
+    overflow: hidden;
+  }
+  .board {
+    width: 100vw;
+    max-width: 100vw;
+    margin: 0 auto;
+    padding: 8px 0 0 0;
+    box-shadow: none;
+    border-radius: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr) !important;
+    grid-template-rows: repeat(4, 1fr) !important;
+    gap: 6px;
+    justify-items: center;
+    align-items: center;
+    overflow-x: hidden;
+    overflow-y: auto;
+    min-height: 0;
+    min-width: 0;
+  }
+  .card {
+    width: 22vw;
+    max-width: 70px;
+    height: 22vw;
+    max-height: 70px;
+    font-size: 1.1em;
+    border-radius: 6px;
+    box-sizing: border-box;
+  }
+  /* Ajuste para grids maiores (16, 20, 30 cartas) */
+  #gameBoard[style*="repeat(4, 80px)"] {
+    grid-template-columns: repeat(4, 1fr) !important;
+    grid-template-rows: unset !important;
+  }
+  #gameBoard[style*="repeat(5, 80px)"] {
+    grid-template-columns: repeat(5, 1fr) !important;
+    grid-template-rows: unset !important;
+  }
+  /* Garante que o tabuleiro nunca ultrapasse a tela */
+  .board {
+    overflow-x: hidden;
+    overflow-y: auto;
+    min-height: 0;
+    min-width: 0;
+  }
+  .card,
+  .card.flipped span {
+    font-size: 2em;
+    font-family: 'Noto Sans Japanese', Arial, sans-serif;
+  }
+}
+@media (max-width: 700px) {
+  html, body {
+    width: 100vw;
+    height: 100vh;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    /* Remover overflow-y: hidden para permitir atualizar a página */
+  }
+  main {
+    min-height: 100vh;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    box-sizing: border-box;
+    padding: 0;
+  }
+  .menu, .game-controls {
+    padding: 2px 0;
+    margin: 0;
+  }
+  .menu-buttons button, .game-controls button {
+    font-size: 0.85em;
+    padding: 5px 8px;
+    min-width: 0;
+    border-radius: 4px;
+    margin: 0 1px;
+  }
+  .game-container {
+    margin: 0 auto !important;
+    padding: 0 !important;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    min-width: 0;
+  }
+  .board[data-cards='20'] {
+    grid-template-columns: repeat(4, 1fr) !important;
+    grid-auto-rows: 1fr;
+    height: 60vw;
+    max-height: 80vh;
+    max-width: 98vw;
+    gap: 6px;
+    padding: 0;
+    margin: 0 auto;
+  }
+  .board[data-cards='30'],
+  .board[data-cards='40'] {
+    grid-template-columns: repeat(5, 1fr) !important;
+    grid-auto-rows: 1fr;
+    height: 75vw;
+    max-height: 80vh;
+    max-width: 98vw;
+    gap: 5px;
+    padding: 0;
+    margin: 0 auto;
+  }
+  .board[data-cards='20'] .card,
+  .board[data-cards='30'] .card,
+  .board[data-cards='40'] .card {
+    aspect-ratio: 1/1;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    max-width: 100%;
+    max-height: 100%;
+    font-size: 0.8em;
+    padding: 0;
+    border-radius: 3px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .board[data-cards='40'] .card {
+    font-size: 0.62em;
+  }
+  .board[data-cards='30'] .card {
+    font-size: 0.7em;
+  }
+  .board[data-cards='20'] .card {
+    font-size: 0.85em;
+  }
+}
+@media (min-width: 701px) {
+  .board[data-cards='30'] {
+    grid-template-columns: repeat(6, 1fr) !important;
+  }
+  .board[data-cards='40'] {
+    grid-template-columns: repeat(8, 1fr) !important;
+  }
+}
+
+/* Ajuste para texto grande nas cartas (evita corte) */
+.card {
+  word-break: break-word;
+  white-space: normal;
+  text-align: center;
+  font-size: 1.2em;
+}
+.card.flipped {
+  font-size: 1.1em;
+}
+.card.flipped img {
+  display: block;
+  margin: 0 auto;
+  max-width: 40px;
+  max-height: 40px;
+}
