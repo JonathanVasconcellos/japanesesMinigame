@@ -12,7 +12,12 @@
     ySeries: [["や", "ya"], ["ゆ", "yu"], ["よ", "yo"]],
     rSeries: [["ら", "ra"], ["り", "ri"], ["る", "ru"], ["れ", "re"], ["ろ", "ro"]],
     wSeries: [["わ", "wa"], ["を", "wo"]],
-    nFinal: [["ん", "n"]]
+    nFinal: [["ん", "n"]],
+    gSeries: [["が", "ga"], ["ぎ", "gi"], ["ぐ", "gu"], ["げ", "ge"], ["ご", "go"]],
+    zSeries: [["ざ", "za"], ["じ", "ji"], ["ず", "zu"], ["ぜ", "ze"], ["ぞ", "zo"]],
+    dSeries: [["だ", "da"], ["ぢ", "ji"], ["づ", "zu"], ["で", "de"], ["ど", "do"]],
+    bSeries: [["ば", "ba"], ["び", "bi"], ["ぶ", "bu"], ["べ", "be"], ["ぼ", "bo"]],
+    pSeries: [["ぱ", "pa"], ["ぴ", "pi"], ["ぷ", "pu"], ["ぺ", "pe"], ["ぽ", "po"]]
   };
   const setNames = {
     vowels: "Vogais",
@@ -25,7 +30,12 @@
     ySeries: "Série Y",
     rSeries: "Série R",
     wSeries: "Série W",
-    nFinal: "N Final"
+    nFinal: "N Final",
+    gSeries: "Série G",
+    zSeries: "Série Z",
+    dSeries: "Série D",
+    bSeries: "Série B",
+    pSeries: "Série P"
   };
   // Sons
   const flipSound = new Audio("Sound/flip.mp3");
@@ -98,6 +108,18 @@
     const seconds = Math.round(elapsed % 60);
     document.getElementById("timeElapsed").textContent = `${minutes} min ${seconds} seg`;
   }
+  function validateSelectedSets(checkboxes) {
+    const validSets = [];
+    checkboxes.forEach(checkbox => {
+      const set = sets[checkbox.value];
+      if (set) {
+        validSets.push(set);
+      } else {
+        console.error(`Set not found: ${checkbox.value}`);
+      }
+    });
+    return validSets;
+  }
   function startGame() {
     clickSound.play();
     document.querySelector('h1').style.display = 'none';
@@ -122,22 +144,22 @@
       return;
     }
     let availablePairs = [];
-    const selectedSets = [];
-    checkboxes.forEach(checkbox => {
-      const set = sets[checkbox.value];
+    const selectedSets = validateSelectedSets(checkboxes);
+    selectedSets.forEach(set => {
       availablePairs = availablePairs.concat(set);
-      selectedSets.push(setNames[checkbox.value]);
     });
-    document.getElementById("modeInfo").textContent = selectedSets.length > 0 ? selectedSets.join(", ") : "Nenhum";
+    if (availablePairs.length === 0) {
+      errorMessage.textContent = "Nenhum conjunto válido selecionado!";
+      return;
+    }
     const neededPairs = cardCount / 2;
     let selectedPairs = [];
-    const shuffledAvailable = shuffle(availablePairs.slice());
-    for (let i = 0; i < neededPairs; i++) {
-      if (shuffledAvailable.length === 0) {
-        shuffledAvailable.push(...shuffle(availablePairs.slice()));
-      }
-      selectedPairs.push(shuffledAvailable.shift());
+    while (selectedPairs.length < neededPairs) {
+      const shuffledAvailable = shuffle(availablePairs.slice());
+      selectedPairs = selectedPairs.concat(shuffledAvailable.slice(0, neededPairs - selectedPairs.length));
     }
+    // Embaralhamento aprimorado para evitar padrões previsíveis
+    selectedPairs = shuffle(selectedPairs);
     errorMessage.textContent = "";
     const characters = selectedPairs.flat();
     const shuffled = shuffle(characters);
@@ -191,9 +213,12 @@
     document.querySelector('.game-controls').style.display = 'flex';
     gameContainer.style.display = 'flex';
   }
+  // Update startTraining to use validateSelectedSets
   function startTraining() {
+    console.log("startTraining foi chamado"); // Log de depuração
     clickSound.play();
     const checkboxes = document.querySelectorAll(".setCheck:checked");
+    console.log("Checkboxes selecionados:", checkboxes); // Log de depuração
     const errorMessage = document.getElementById("errorMessage");
     const gameContainer = document.getElementById("gameContainer");
     const trainingContainer = document.getElementById("trainingContainer");
@@ -205,6 +230,7 @@
     trainingContainer.style.display = "none";
     if (checkboxes.length === 0) {
       errorMessage.textContent = "Selecione pelo menos um conjunto!";
+      console.log("Nenhum conjunto selecionado"); // Log de depuração
       return;
     }
     trainingHits = 0;
@@ -221,15 +247,22 @@
     document.querySelector(".restart-training-btn").style.display = "none";
     document.getElementById("errorList").style.display = "none";
     selectedChars = [];
-    checkboxes.forEach(checkbox => {
-      const set = sets[checkbox.value];
+    const selectedSets = validateSelectedSets(checkboxes);
+    console.log("Conjuntos validados:", selectedSets); // Log de depuração
+    selectedSets.forEach(set => {
       selectedChars = selectedChars.concat(set.map(([hiragana]) => hiragana));
     });
+    if (selectedChars.length === 0) {
+      errorMessage.textContent = "Nenhum conjunto válido selecionado!";
+      console.log("Nenhum caractere selecionado"); // Log de depuração
+      return;
+    }
     errorMessage.textContent = "";
     nextTrainingChar();
     document.querySelector('.menu').style.display = 'none';
     document.querySelector('.training-controls').style.display = 'flex';
     trainingContainer.style.display = 'flex';
+    console.log("Modo treino iniciado com sucesso"); // Log de depuração
   }
   function restartTraining() {
     clickSound.play();
@@ -276,35 +309,38 @@
       }
       return;
     }
-    let weightedChars = [];
+
+    // Verificar se o elemento trainingChar existe
+    const currentCharElement = document.getElementById("trainingChar");
+    if (!currentCharElement) {
+      console.error("Elemento trainingChar não encontrado no DOM.");
+      return;
+    }
+
+    // Priorizar caracteres com mais erros
+    const weightedChars = [];
     selectedChars.forEach(char => {
-      if (char !== lastTrainingChar) {
-        const errorCount = errorStats[char] ? errorStats[char].length : 0;
-        const weight = Math.max(1, errorCount + 1);
-        for (let i = 0; i < weight; i++) {
-          weightedChars.push(char);
-        }
+      const errorCount = errorStats[char]?.length || 0;
+      for (let i = 0; i <= errorCount; i++) {
+        weightedChars.push(char);
       }
     });
-    if (weightedChars.length === 0) {
-      selectedChars.forEach(char => {
-        const errorCount = errorStats[char] ? errorStats[char].length : 0;
-        const weight = Math.max(1, errorCount + 1);
-        for (let i = 0; i < weight; i++) {
-          weightedChars.push(char);
-        }
-      });
-    }
-    currentTrainingChar = shuffle(weightedChars)[0];
-    lastTrainingChar = currentTrainingChar;
-    document.getElementById("trainingChar").textContent = currentTrainingChar;
-    document.getElementById("inputRomanji").value = "";
-    document.getElementById("inputRomanji").focus();
-    document.getElementById("feedback").textContent = "";
+
+    // Embaralhar os caracteres ponderados
+    const shuffledChars = shuffle(weightedChars);
+    let nextChar;
+    do {
+      nextChar = shuffledChars.pop();
+    } while (nextChar === lastTrainingChar && shuffledChars.length > 0);
+
+    lastTrainingChar = nextChar;
+    currentTrainingChar = nextChar;
+    currentCharElement.textContent = currentTrainingChar;
   }
   function checkAnswer() {
     clickSound.play();
-    const input = document.getElementById("inputRomanji").value.trim().toLowerCase();
+    const inputElement = document.getElementById("inputRomanji");
+    const input = inputElement.value.trim().toLowerCase();
     const correctAnswer = sets[Object.keys(sets).find(set => 
       sets[set].some(([hiragana, romanji]) => hiragana === currentTrainingChar)
     )].find(([hiragana]) => hiragana === currentTrainingChar)[1].toLowerCase();
@@ -323,9 +359,10 @@
       }
       errorStats[currentTrainingChar].push({ turn: trainingTotal + 1, input: input });
     }
+    inputElement.value = ""; // Limpar o campo de entrada após o envio da resposta
     trainingTotal++;
     document.getElementById("trainingTotal").textContent = trainingTotal;
-    document.getElementById("trainingRemaining").textContent = trainingLimit - trainingTotal;
+    document.getElementById("trainingRemaining").textContent = trainingLimit - trainingTotal; // Reduzir corretamente em 1
     nextTrainingChar();
   }
   function returnToMenu() {
