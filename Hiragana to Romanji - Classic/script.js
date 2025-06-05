@@ -374,14 +374,20 @@
     document.getElementById("trainingContainer").style.display = 'none';
     document.getElementById("winModal").style.display = 'none';
     document.getElementById("modalOverlay").style.display = 'none';
+    const restartTrainingElement = document.getElementById("restartTraining");
+    if (restartTrainingElement) {
+      restartTrainingElement.style.display = "none";
+    }
+    const errorListElement = document.getElementById("errorList");
+    if (errorListElement) {
+      errorListElement.style.display = "none";
+    }
     if (timerInterval) clearInterval(timerInterval);
     trainingHits = 0;
     trainingErrors = 0;
     trainingTotal = 0;
     errorStats = {};
     lastTrainingChar = null;
-    document.getElementById("restartTraining").style.display = "none";
-    document.getElementById("errorList").style.display = "none";
   }
   function flipCard(card) {
     if (lockBoard || card === firstCard || card.classList.contains("matched") || card.style.background === "transparent") return;
