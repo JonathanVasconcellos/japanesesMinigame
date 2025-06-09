@@ -56,10 +56,7 @@
       if (!loaded.has(word.image)) {
         const img = new Image();
         img.src = word.image;
-        // Apenas loga o erro, sem adicionar fallback visual ao body
-        img.onerror = () => {
-          console.warn(`Imagem não encontrada: ${word.image}`);
-        };
+        img.onerror = () => console.warn(`Imagem não encontrada: ${word.image}`);
         loaded.add(word.image);
       }
     });
@@ -87,11 +84,13 @@
     const isDarkMode = document.body.classList.contains('dark-mode');
     document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
       btn.textContent = isDarkMode ? "Modo Claro" : "Modo Escuro";
+      console.log('Botão de tema encontrado:', btn.textContent); // Depuração
     });
 
     // Música
     document.querySelectorAll('.music-toggle-btn').forEach(btn => {
       btn.textContent = isMusicPlaying ? "Pausar Música" : "Retomar Música";
+      console.log('Botão de música encontrado:', btn.textContent); // Depuração
     });
   }
 
@@ -118,60 +117,18 @@
     initializeButtonLabels(); // Atualiza os textos dos botões
   }
 
-  // Ajuste na inicialização do tema para refletir o estado salvo ou definir o padrão como claro
-  function applyTheme(isDark) {
-    if (isDark) {
-      document.body.classList.add('dark-mode');
-      document.body.classList.remove('light-mode');
-    } else {
-      document.body.classList.remove('dark-mode');
-      document.body.classList.add('light-mode');
-    }
-    document.querySelectorAll('.menu, .board, .game-info, #winModal').forEach(element => {
-      if (isDark) {
-        element.classList.add('dark-mode');
-        element.classList.remove('light-mode');
-      } else {
-        element.classList.remove('dark-mode');
-        element.classList.add('light-mode');
-      }
-    });
-  }
-
-  const savedTheme = localStorage.getItem('theme');
-  applyTheme(savedTheme === 'dark');
-  if (!savedTheme) {
-    localStorage.setItem('theme', 'light');
-  }
-
-  // Atualiza as cartas para refletirem o tema atual
-  function updateCardTheme() {
-    const isDarkMode = document.body.classList.contains('dark-mode');
-    document.querySelectorAll('.card').forEach(card => {
-      if (isDarkMode) {
-        card.classList.add('dark-mode');
-        card.classList.remove('light-mode');
-      } else {
-        card.classList.add('light-mode');
-        card.classList.remove('dark-mode');
-      }
-    });
-  }
-
-  // Atualiza o tema ao alternar
   function toggleTheme() {
     clickSound.play();
-    const isDarkMode = !document.body.classList.contains('dark-mode');
+    document.body.classList.toggle('dark-mode');
+    const isDarkMode = document.body.classList.contains('dark-mode');
     localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
-    applyTheme(isDarkMode);
     initializeButtonLabels(); // Atualiza os textos dos botões
-    updateCardTheme(); // Atualiza as cartas
   }
 
-  // Chama a função para garantir que as cartas estejam no tema correto ao carregar a página
-  window.addEventListener('load', () => {
-    updateCardTheme();
-  });
+  // Ajuste na inicialização do tema para refletir o estado salvo
+  if (localStorage.getItem('theme') === 'dark') {
+    document.body.classList.add('dark-mode');
+  }
 
   // Variáveis de estado do jogo
   let firstCard = null;
@@ -236,9 +193,7 @@
     const cards = [];
     selectedWords.forEach(word => {
       cards.push({ type: "hiragana", value: word.hiragana, pairId: word.hiragana });
-      // Adiciona fallback visual diretamente na carta, se a imagem falhar
-      const imgHtml = `<div class=\"image-container\"><img src=\"${word.image}\" alt=\"${word.romanji}\" onerror=\"this.onerror=null;this.parentNode.innerHTML='<div style=\\'width:100px;height:100px;background:#ccc;text-align:center;line-height:100px;\\'>Imagem não disponível</div>'\"></div><span>${word.romanji}</span>`;
-      cards.push({ type: "romanji", value: imgHtml, pairId: word.hiragana });
+      cards.push({ type: "romanji", value: `<div class="image-container"><img src="${word.image}" alt="${word.romanji}"></div><span>${word.romanji}</span>`, pairId: word.hiragana });
     });
 
     const shuffledCards = shuffle(cards);
@@ -267,14 +222,6 @@
       cardElement.dataset.pairId = card.pairId;
       cardElement.dataset.value = card.value;
       cardElement.innerHTML = "?";
-      // Adiciona ResizeObserver para ajustar o tamanho da fonte automaticamente
-      const resizeObserver = new ResizeObserver(entries => {
-        const card = entries[0].target;
-        if (card.classList.contains('flipped')) {
-          adjustFontSize(card);
-        }
-      });
-      resizeObserver.observe(cardElement);
       cardElement.addEventListener("click", () => flipCard(cardElement));
       fragment.appendChild(cardElement);
     });
@@ -309,8 +256,6 @@
     flipSound.play();
     card.classList.add("flipped");
     card.innerHTML = card.dataset.type === "hiragana" ? card.dataset.pairId : card.dataset.value;
-    // Ajusta o tamanho da fonte após virar a carta
-    setTimeout(() => adjustFontSize(card), 0);
     if (!firstCard) {
       firstCard = card;
       return;
@@ -372,29 +317,6 @@
     firstCard = null;
     secondCard = null;
     lockBoard = false;
-  }
-
-  // Função para ajustar o tamanho da fonte automaticamente
-  function adjustFontSize(card) {
-    const content = card.dataset.type === "hiragana" ? card.firstChild : card.querySelector('span');
-    if (!content) return;
-
-    const maxWidth = card.clientWidth * 0.9;
-    const maxHeight = card.clientHeight * 0.9;
-    
-    // Reset font size to measure the natural size
-    content.style.fontSize = '';
-    
-    const contentWidth = content.offsetWidth;
-    const contentHeight = content.offsetHeight;
-    
-    if (contentWidth > maxWidth || contentHeight > maxHeight) {
-      const widthRatio = maxWidth / contentWidth;
-      const heightRatio = maxHeight / contentHeight;
-      const ratio = Math.min(widthRatio, heightRatio);
-      const currentSize = parseFloat(getComputedStyle(content).fontSize);
-      content.style.fontSize = `${currentSize * ratio}px`;
-    }
   }
 
   // Expor funções globais necessárias
