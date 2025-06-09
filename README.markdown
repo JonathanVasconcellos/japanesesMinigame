@@ -61,7 +61,7 @@ O **Modo Com Imagens** é um jogo de memória onde o jogador combina pares de ca
 1. **Clone o repositório**:
    ```bash
    git clone https://github.com/JonathanVasconcellos/japanesesMinigame.git
-   cd hiragana-learning-games
+   cd japanesesMinigame
    ```
 2. **Abra a página inicial**:
    - Abra `index.html` em um navegador ou use um servidor local.
