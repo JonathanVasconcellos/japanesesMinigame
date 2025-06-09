@@ -2,13 +2,72 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Meus Minijogos</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f9f9f9;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+      color: #222;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    li {
+      margin-bottom: 1rem;
+    }
+
+    a {
+      display: block;
+      background-color: #4CAF50;
+      color: white;
+      text-align: center;
+      padding: 15px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 1.1rem;
+      transition: background-color 0.3s;
+    }
+
+    a:hover {
+      background-color: #45a049;
+    }
+
+    @media (max-width: 500px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      a {
+        font-size: 1rem;
+        padding: 12px;
+      }
+    }
+  </style>
 </head>
 <body>
   <h1>Meus Minijogos</h1>
   <ul>
-    <li><a href="Hiragana to Romanji - Classic/jogo_memoria_hiragana_completo.html">Modo Classico</a></li>
-    <li><a href="Hiragana to Romanji - Images/hiragana_memory_game.html">Modo com Imagens</a></li>
+    <li><a href="Hiragana to Romanji - Classic/jogo_memoria_hiragana_completo.html">🎴 Modo Clássico</a></li>
+    <li><a href="Hiragana to Romanji - Images/hiragana_memory_game.html">🖼️ Modo com Imagens</a></li>
   </ul>
 </body>
 </html>
