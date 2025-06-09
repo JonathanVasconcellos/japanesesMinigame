@@ -60,7 +60,7 @@ O **Modo Com Imagens** é um jogo de memória onde o jogador combina pares de ca
 ### Passos para Instalação
 1. **Clone o repositório**:
    ```bash
-   git clone https://github.com/seu-usuario/hiragana-learning-games.git
+   git clone https://github.com/JonathanVasconcellos/japanesesMinigame.git
    cd hiragana-learning-games
    ```
 2. **Abra a página inicial**:
@@ -88,7 +88,7 @@ O **Modo Com Imagens** é um jogo de memória onde o jogador combina pares de ca
 
 ### Estrutura de Arquivos
 ```
-hiragana-learning-games/
+japanesesMinigame/
 ├── index.html                           # Página inicial
 ├── classico/                            # Modo Clássico
 │   ├── jogo_memoria_hiragana_completo.html  # HTML
@@ -150,7 +150,7 @@ hiragana-learning-games/
 Licenciado sob a [MIT License](LICENSE).
 
 ## Contato
-Dúvidas ou sugestões? Entre em contato via [seu-email@exemplo.com] ou abra uma issue.
+Dúvidas ou sugestões? Abra uma issue.
 
 ---
 
