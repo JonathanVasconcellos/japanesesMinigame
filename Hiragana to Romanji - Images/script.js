@@ -201,8 +201,8 @@
     const totalCards = pairCount * 2;
     const columns = Math.min(Math.ceil(Math.sqrt(totalCards)), 6);
     const rows = Math.ceil(totalCards / columns);
-    gameBoard.style.gridTemplateColumns = `repeat(${columns}, 100px)`;
-    gameBoard.style.gridTemplateRows = `repeat(${rows}, 100px)`;
+    gameBoard.style.gridTemplateColumns = `repeat(${columns}, minmax(60px, 1fr))`;
+    gameBoard.style.gridTemplateRows = `repeat(${rows}, minmax(60px, 1fr))`;
     gameBoard.setAttribute('data-cards', totalCards);
     gameBoard.innerHTML = "";
     firstCard = null;
