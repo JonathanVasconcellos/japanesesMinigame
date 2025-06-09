@@ -25,7 +25,9 @@
     h1 {
       font-size: 2rem;
       margin-bottom: 1.5rem;
-      color: #222;
+      color: white; /* Alterado para branco */
+      text-shadow: 0 0 3px black; /* Bordas pretas */
+      font-weight: bold; /* Negrito */
     }
 
     ul {
@@ -49,10 +51,35 @@
       text-decoration: none;
       font-size: 1.1rem;
       transition: background-color 0.3s;
+      text-transform: uppercase; /* Texto em maiúsculo */
+      text-shadow: 0 0 3px black; /* Bordas pretas */
+      font-weight: bold; /* Negrito */
     }
 
     a:hover {
       background-color: #ff5555;
+    }
+
+    .content-container {
+      background-color: rgba(255, 255, 255, 0.8); /* Fundo branco com transparência */
+      border: 2px solid red;
+      padding: 20px; /* Ajustado para cobrir o texto e os botões */
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 500px; /* Limite de largura para manter o layout responsivo */
+    }
+
+    .button-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
     }
 
     @media (max-width: 500px) {
@@ -68,10 +95,14 @@
   </style>
 </head>
 <body>
-  <h1>Meus Minijogos</h1>
-  <ul>
-    <li><a href="Hiragana to Romanji - Classic/jogo_memoria_hiragana_completo.html">🎴 Modo Clássico</a></li>
-    <li><a href="Hiragana to Romanji - Images/hiragana_memory_game.html">🖼️ Modo com Imagens</a></li>
-  </ul>
+  <h1>SELECIONE UM MODO</h1>
+  <div class="content-container">
+    <div class="button-container">
+      <ul>
+        <li><a href="Hiragana to Romanji - Classic/jogo_memoria_hiragana_completo.html">Modo Clássico</a></li>
+        <li><a href="Hiragana to Romanji - Images/hiragana_memory_game.html">Modo Com Imagens</a></li>
+      </ul>
+    </div>
+  </div>
 </body>
 </html>
