@@ -9,7 +9,7 @@
   <link rel="icon" href="data:;base64,="> <!-- Evita o erro 404 para favicon -->
 </head>
 <body>
-  <h1>Jogo da Memória - Hiragana e Romanji</h1>
+  <h1>Jogo da Memória - Modo Clássico</h1>
   <div class="menu">
     <div class="checkbox-container">
       <label><input type="checkbox" class="setCheck" value="vowels" checked> Vogais (あ, い, う, え, お)</label>
@@ -40,11 +40,15 @@
     </div>
     <div id="errorMessage" class="error" aria-live="polite"></div>
     <div class="menu-buttons">
-      <button class="start-game-btn" type="button">Iniciar Jogo</button>
-      <button class="start-training-btn" type="button">Treino</button>
-      <button class="music-toggle-btn" type="button">Pausar Música</button>
-      <button class="theme-toggle-btn" type="button">Modo Escuro</button>
-      <button onclick="window.location.href='../../japanesesMinigame/index.html'">Sair</button>
+      <div class="menu-row menu-row-top">
+        <button class="start-game-btn" type="button">Iniciar Jogo</button>
+        <button class="start-training-btn" type="button">Treino</button>
+        <button onclick="window.location.href='../../japanesesMinigame/index.html'">Sair</button>
+      </div>
+      <div class="menu-row menu-row-bottom">
+        <button class="theme-toggle-btn" type="button">Modo Escuro</button>
+        <button class="music-toggle-btn" type="button">Pausar Música</button>
+      </div>
     </div>
   </div>
   <div class="game-controls" style="display: none;">
@@ -98,6 +102,7 @@
     <p id="winMessage"></p>
     <button class="start-game-btn" type="button">Jogar Novamente</button>
   </div>
+  <script src="music-fade.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
