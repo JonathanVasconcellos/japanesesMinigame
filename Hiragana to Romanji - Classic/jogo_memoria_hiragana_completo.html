@@ -11,7 +11,27 @@
 <body>
   <h1>Jogo da Memória - Modo Clássico</h1>
   <div class="menu">
-    <div class="checkbox-container">
+    <div class="menu-buttons" style="margin-bottom: 10px;">
+      <div class="menu-row menu-row-top">
+        <button class="start-game-btn" type="button">Iniciar Jogo</button>
+        <button class="start-training-btn" type="button">Treino</button>
+        <button onclick="window.location.href='../../japanesesMinigame/index.html'">Sair</button>
+      </div>
+      <div class="menu-row menu-row-bottom">
+        <button class="theme-toggle-btn" type="button">Modo Escuro</button>
+        <button class="music-toggle-btn" type="button">Pausar Música</button>
+      </div>
+    </div>
+    <div style="margin-bottom: 10px;">
+      <label for="cardCount">Número de cartas:</label>
+      <select id="cardCount">
+        <option value="8">8</option>
+        <option value="16">16</option>
+        <option value="20">20</option>
+        <option value="30">30</option>
+      </select>
+    </div>
+    <div class="checkbox-container" style="margin-bottom: 10px;">
       <label><input type="checkbox" class="setCheck" value="vowels" checked> Vogais (あ, い, う, え, お)</label>
       <label><input type="checkbox" class="setCheck" value="kSeries"> Série K (か, き, く, け, こ)</label>
       <label><input type="checkbox" class="setCheck" value="sSeries"> Série S (さ, し, す, せ, そ)</label>
@@ -29,27 +49,7 @@
       <label><input type="checkbox" class="setCheck" value="bSeries"> Série B (ば, び, ぶ, べ, ぼ)</label>
       <label><input type="checkbox" class="setCheck" value="pSeries"> Série P (ぱ, ぴ, ぷ, ぺ, ぽ)</label>
     </div>
-    <div>
-      <label for="cardCount">Número de cartas:</label>
-      <select id="cardCount">
-        <option value="8">8</option>
-        <option value="16">16</option>
-        <option value="20">20</option>
-        <option value="30">30</option>
-      </select>
-    </div>
     <div id="errorMessage" class="error" aria-live="polite"></div>
-    <div class="menu-buttons">
-      <div class="menu-row menu-row-top">
-        <button class="start-game-btn" type="button">Iniciar Jogo</button>
-        <button class="start-training-btn" type="button">Treino</button>
-        <button onclick="window.location.href='../../japanesesMinigame/index.html'">Sair</button>
-      </div>
-      <div class="menu-row menu-row-bottom">
-        <button class="theme-toggle-btn" type="button">Modo Escuro</button>
-        <button class="music-toggle-btn" type="button">Pausar Música</button>
-      </div>
-    </div>
   </div>
   <div class="game-controls" style="display: none;">
     <button class="return-menu-btn" type="button">Voltar ao Menu</button>

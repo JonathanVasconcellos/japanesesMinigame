@@ -53,6 +53,10 @@ body.dark-mode .menu {
 .menu-row-bottom {
   margin-top: 0;
 }
+.menu-row-bottom button {
+  font-size: 0.7em;
+  padding: 7px 14px;
+}
 @media (max-width: 600px) {
   .menu-buttons {
     flex-direction: column;
