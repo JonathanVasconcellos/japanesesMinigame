@@ -1,16 +1,45 @@
+html, body {
+  min-height: 100vh !important;
+  height: 100vh !important;
+  width: 100vw;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 body {
   font-family: 'Noto Sans Japanese', Arial, sans-serif;
   text-align: center;
   margin: 20px;
-  background: linear-gradient(to bottom, #fff, #f8e1e1);
-  color: #333;
+  background: linear-gradient(to bottom, #fff, #f8e1e1) fixed;
+  background-size: cover;
+  background-repeat: no-repeat;
+  color: #333;  .game-info, .training-info {
+    background: #fff;
+    padding: 15px;
+    border: 2px solid #d32f2f;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    min-width: 260px;
+    width: 260px;
+    max-width: 260px;  /* impede de crescer mais */
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    height: auto !important;
+    min-height: unset !important;
+    max-height: unset !important;
+    align-self: flex-start;
+  }
   transition: all 0.3s ease;
-  min-height: 100vh;
-  height: 100vh;
+  min-height: 100vh !important;
+  height: 100vh !important;
   box-sizing: border-box;
 }
 body.dark-mode {
-  background: linear-gradient(to bottom, #1a1a1a, #2a2a2a);
+  background: linear-gradient(to bottom, #1a1a1a, #2a2a2a) fixed;
+  background-size: cover;
+  background-repeat: no-repeat;
   color: #e0e0e0;
 }
 .menu {
@@ -107,6 +136,17 @@ body.dark-mode .board {
   align-items: center;
   margin: 0 auto;
   max-width: 800px;
+  background: radial-gradient(circle at 50% 50%, #ffeaea 0%, #fff 70%, #fff 100%);
+  border: 2px solid #d32f2f;
+  box-shadow: 0 4px 16px rgba(211,47,47,0.08);
+  border-radius: 16px;
+  padding: 24px 0 24px 0;
+  transition: background 0.3s, box-shadow 0.3s;
+}
+body.dark-mode .training-container {
+  background: radial-gradient(circle at 50% 50%, #2a2a2a 0%, #232323 70%, #232323 100%);
+  border: 2px solid #ff5555;
+  box-shadow: 0 4px 16px rgba(255,85,85,0.08);
 }
 .game-info, .training-info {
   background: #fff;
@@ -114,11 +154,17 @@ body.dark-mode .board {
   border: 2px solid #d32f2f;
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  min-width: 200px;
+  min-width: 260px;
+  width: 260px;      /* largura fixa */
+  max-width: 260px;  /* impede de crescer mais */
   text-align: center;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  height: auto !important;
+  min-height: unset !important;
+  max-height: unset !important;
+  align-self: flex-start;
 }
 body.dark-mode .game-info, body.dark-mode .training-info {
   background: #333;
@@ -292,7 +338,7 @@ body.dark-mode .modal {
   gap: 10px;
 }
 #trainingChar {
-  font-size: 4em;
+  font-size: 6em;
   margin: 20px 0;
 }
 #inputRomanji {
@@ -333,6 +379,10 @@ body.dark-mode .error-list h4 {
 .card[data-type="romanji"] {
   font-size: 1.3em;
 }
+.training-info {
+  margin: 0 auto;
+  align-self: center;
+}
 
 /* === MEDIA QUERY PARA SMARTPHONES (DEVE FICAR NO FINAL) === */
 @media (max-width: 600px) {
@@ -348,6 +398,7 @@ body.dark-mode .error-list h4 {
     margin: 0;
     padding: 0;
     min-height: 100vh;
+    height: 100vh !important;
     box-sizing: border-box;
     overflow-x: hidden;
   }
@@ -371,9 +422,9 @@ body.dark-mode .error-list h4 {
     left: unset;
     border-radius: 8px;
     margin: 0 auto;
-    width: auto;
-    min-width: 200px;
-    max-width: 95vw;
+    width: 220px;
+    min-width: 220px;
+    max-width: 220px;
     box-sizing: border-box;
     padding: 12px;
     background: #fff;
@@ -382,6 +433,10 @@ body.dark-mode .error-list h4 {
     align-items: center;
     text-align: center;
     gap: 4px;
+    height: auto !important;
+    min-height: unset !important;
+    max-height: unset !important;
+    align-self: flex-start;
   }
   body.dark-mode .game-info {
     background: #333;
@@ -455,5 +510,18 @@ body.dark-mode .error-list h4 {
   .card.flipped span {
     font-size: 2em;
     font-family: 'Noto Sans Japanese', Arial, sans-serif;
+  }
+  .game-info, .training-info {
+    min-width: 220px;
+    width: 220px;
+    max-width: 220px;
+    height: auto !important;
+    min-height: unset !important;
+    max-height: unset !important;
+    align-self: flex-start;
+  }
+  .training-info {
+    margin: 0 auto;
+    align-self: center;
   }
 }
