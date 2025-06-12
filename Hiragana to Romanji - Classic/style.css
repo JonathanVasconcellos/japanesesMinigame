@@ -373,10 +373,39 @@ body.dark-mode .error-list h4 {
     padding: 8px 0 8px 0;
     background: #fff;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 4px;
   }
   body.dark-mode .game-info {
     background: #333;
     box-shadow: 0 2px 8px rgba(255,255,255,0.08);
+  }
+  .game-info h3 {
+    width: 100%;
+    text-align: center;
+  }
+  .game-info-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    justify-content: center;
+    margin: 0;
+  }
+  .game-info-row p {
+    margin: 2px 0;
+    font-weight: bold;
+    min-width: unset;
+    white-space: nowrap;
+    display: inline;
+  }
+  .game-info-row .info-data {
+    display: inline;
+    margin-left: 6px;
+    font-weight: normal;
   }
   .board {
     width: 100vw;
