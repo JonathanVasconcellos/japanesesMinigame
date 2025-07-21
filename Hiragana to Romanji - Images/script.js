@@ -3,20 +3,31 @@
   // Banco de palavras e lógica do jogo movidos do HTML para cá
   const words = {
     basic: [
-      { hiragana: "ねこ", romanji: "neko", image: "imagens/neko.png" },
-      { hiragana: "いぬ", romanji: "inu", image: "imagens/inu.png" },
-      { hiragana: "さかな", romanji: "sakana", image: "imagens/sakana.png" },
-      { hiragana: "りんご", romanji: "ringo", image: "imagens/ringo.png" },
-      { hiragana: "みず", romanji: "mizu", image: "imagens/mizu.png" },
-      { hiragana: "くま", romanji: "kuma", image: "imagens/kuma.png" },
-      { hiragana: "とり", romanji: "tori", image: "imagens/tori.png" },
-      { hiragana: "うさぎ", romanji: "usagi", image: "imagens/usagi.png" },
-      { hiragana: "みかん", romanji: "mikan", image: "imagens/mikan.png" },
-      { hiragana: "やま", romanji: "yama", image: "imagens/yama.png" }
+      { hiragana: "ねこ", romanji: "neko", image: "imagens/neko.png" },	//gato
+      { hiragana: "いぬ", romanji: "inu", image: "imagens/inu.png" },	//cachorro
+      { hiragana: "さかな", romanji: "sakana", image: "imagens/sakana.png" },	//peixe
+      { hiragana: "りんご", romanji: "ringo", image: "imagens/ringo.png" },	//maça
+      { hiragana: "みず", romanji: "mizu", image: "imagens/mizu.png" },	//gota
+      { hiragana: "くま", romanji: "kuma", image: "imagens/kuma.png" },	//urso
+      { hiragana: "とり", romanji: "tori", image: "imagens/tori.png" },	//passaro
+      { hiragana: "うさぎ", romanji: "usagi", image: "imagens/usagi.png" },	//coelho
+      { hiragana: "みかん", romanji: "mikan", image: "imagens/mikan.png" },	// laranja
+      { hiragana: "やま", romanji: "yama", image: "imagens/yama.png" }	// montanha
+      { hiragana: "そら", romanji: "sora", image: "imagens/sora.png" },       // céu
+      { hiragana: "はな", romanji: "hana", image: "imagens/hana.png" },       // flor
+      { hiragana: "たまご", romanji: "tamago", image: "imagens/tamago.png" }, // ovo
+      { hiragana: "くるま", romanji: "kuruma", image: "imagens/kuruma.png" }, // carro
+      { hiragana: "でんしゃ", romanji: "densha", image: "imagens/densha.png" }, // trem
+      { hiragana: "かさ", romanji: "kasa", image: "imagens/kasa.png" },       // guarda-chuva
+      { hiragana: "つき", romanji: "tsuki", image: "imagens/tsuki.png" },     // lua
+      { hiragana: "ひ", romanji: "hi", image: "imagens/hi.png" },             // sol / fogo
+      { hiragana: "かめ", romanji: "kame", image: "imagens/kame.png" },       // tartaruga
+      { hiragana: "いす", romanji: "isu", image: "imagens/isu.png" }          // cadeira
+      { hiragana: "うみ", romanji: "umi", image: "imagens/umi.png" }          // mar
+
     ],
     intermediate: [
       { hiragana: "おちゃ", romanji: "ocha", image: "imagens/ocha.png" },
-      { hiragana: "パン", romanji: "pan", image: "imagens/pan.png" },
       { hiragana: "くるま", romanji: "kuruma", image: "imagens/kuruma.png" },
       { hiragana: "ほん", romanji: "hon", image: "imagens/hon.png" },
       { hiragana: "てんき", romanji: "tenki", image: "imagens/tenki.png" },
