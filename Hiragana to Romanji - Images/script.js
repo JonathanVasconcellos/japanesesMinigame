@@ -12,7 +12,7 @@
       { hiragana: "とり", romanji: "tori", image: "imagens/tori.png" },	//passaro
       { hiragana: "うさぎ", romanji: "usagi", image: "imagens/usagi.png" },	//coelho
       { hiragana: "みかん", romanji: "mikan", image: "imagens/mikan.png" },	// laranja
-      { hiragana: "やま", romanji: "yama", image: "imagens/yama.png" }	// montanha
+      { hiragana: "やま", romanji: "yama", image: "imagens/yama.png" },	// montanha
       { hiragana: "そら", romanji: "sora", image: "imagens/sora.png" },       // céu
       { hiragana: "はな", romanji: "hana", image: "imagens/hana.png" },       // flor
       { hiragana: "たまご", romanji: "tamago", image: "imagens/tamago.png" }, // ovo
@@ -22,9 +22,8 @@
       { hiragana: "つき", romanji: "tsuki", image: "imagens/tsuki.png" },     // lua
       { hiragana: "ひ", romanji: "hi", image: "imagens/hi.png" },             // sol / fogo
       { hiragana: "かめ", romanji: "kame", image: "imagens/kame.png" },       // tartaruga
-      { hiragana: "いす", romanji: "isu", image: "imagens/isu.png" }          // cadeira
-      { hiragana: "うみ", romanji: "umi", image: "imagens/umi.png" }          // mar
-
+      { hiragana: "いす", romanji: "isu", image: "imagens/isu.png" },        // cadeira
+      { hiragana: "うみ", romanji: "umi", image: "imagens/umi.png" },         // mar
     ],
     intermediate: [
       { hiragana: "おちゃ", romanji: "ocha", image: "imagens/ocha.png" },
