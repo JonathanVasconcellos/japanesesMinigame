@@ -2,7 +2,7 @@
 (function() {
   // Banco de palavras por dificuldade
   const words = {
-    basic: [
+    Basico: [
       { hiragana: "ねこ", image: "imagens/neko.png" },
       { hiragana: "いぬ", image: "imagens/inu.png" },
       { hiragana: "くま", image: "imagens/kuma.png" },
@@ -14,7 +14,7 @@
       { hiragana: "つき", image: "imagens/tsuki.png" },
       { hiragana: "ひ", image: "imagens/hi.png" }
     ],
-    intermediate: [
+    Intermediario: [
       { hiragana: "さかな", image: "imagens/sakana.png" },
       { hiragana: "りんご", image: "imagens/ringo.png" },
       { hiragana: "みかん", image: "imagens/mikan.png" },
@@ -149,13 +149,45 @@
     matches = 0;
   };
 
+  // Desativa o modo avançado
+  const advancedCheckbox = document.querySelector('.setCheck[value="advanced"]');
+  if (advancedCheckbox) {
+    advancedCheckbox.disabled = true;
+    advancedCheckbox.parentElement.style.opacity = '0.5';
+    advancedCheckbox.parentElement.title = 'Modo avançado desativado temporariamente';
+  }
+
   // Seleção única de dificuldade
   const checkboxes = document.querySelectorAll('.setCheck');
   checkboxes.forEach(cb => {
-    cb.onclick = function() {
+    cb.onclick = function(e) {
+      // Se já está marcado, impede desmarcar
+      if (cb.checked === false) {
+        e.preventDefault();
+        return false;
+      }
+      // Marca apenas este e desmarca os outros
       checkboxes.forEach(other => { if (other !== cb) other.checked = false; });
     };
   });
+
+  // Seleciona o modo básico por padrão ao abrir o menu
+  const basicoCheckbox = document.querySelector('.setCheck[value="Basico"]');
+  if (basicoCheckbox) basicoCheckbox.checked = true;
+
+  // Torna obrigatório selecionar uma dificuldade antes de iniciar o jogo
+  document.querySelector('.start-game-btn').onclick = function() {
+    const checked = document.querySelector('.setCheck:checked');
+    if (!checked) {
+      alert('Selecione um modo de dificuldade antes de iniciar o jogo!');
+      return;
+    }
+    preloadImages();
+    document.querySelector('.menu').style.display = 'none';
+    document.getElementById('gameContainer').style.display = 'flex';
+    document.querySelector('.game-controls').style.display = 'flex';
+    window.startGame();
+  };
 
   // Função para virar carta
   let firstCard = null, secondCard = null, lockBoard = false, attempts = 0, matches = 0;
