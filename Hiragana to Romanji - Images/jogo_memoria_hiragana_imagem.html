@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jogo da Memória - Hiragana e Imagem</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Japanese&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:;base64,=">
+</head>
+<body>
+  <h1>Jogo da Memória - Hiragana e Imagem</h1>
+  <div class="menu">
+    <div class="menu-buttons" style="margin-bottom: 10px;">
+      <div class="menu-row menu-row-top">
+        <button class="start-game-btn" type="button">Iniciar Jogo</button>
+        <button onclick="window.location.href='../../japanesesMinigame/index.html'">Sair</button>
+      </div>
+      <div class="menu-row menu-row-bottom">
+        <button class="theme-toggle-btn" type="button">Modo Escuro</button>
+        <button class="music-toggle-btn" type="button">Pausar Música</button>
+      </div>
+    </div>
+    <div style="margin-bottom: 10px;">
+      <label for="pairCount">Número de cartas:</label>
+      <select id="pairCount">
+        <option value="8">8</option>
+        <option value="16">16</option>
+        <option value="20">20</option>
+        <option value="30">30</option>
+      </select>
+    </div>
+    <div class="checkbox-container" style="margin-bottom: 10px;">
+      <label><input type="checkbox" class="setCheck" value="Basico" checked> Básico</label>
+      <label><input type="checkbox" class="setCheck" value="Intermediario"> Intermediário</label>
+      <label><input type="checkbox" class="setCheck" value="advanced"> Avançado</label>
+    </div>
+    <div id="errorMessage" class="error" aria-live="polite"></div>
+  </div>
+  <div class="game-controls" style="display: none;">
+    <button class="return-menu-btn" type="button">Voltar ao Menu</button>
+    <button class="music-toggle-btn" type="button">Pausar Música</button>
+    <button class="theme-toggle-btn" type="button">Modo Escuro</button>
+  </div>
+  <div class="game-container" id="gameContainer">
+    <div class="board" id="gameBoard"></div>
+    <div class="game-info" id="gameInfo">
+      <h3>Informações do Jogo</h3>
+      <div class="game-info-row"><p>Dificuldade:</p><span class="info-data" id="modeInfo">Básico</span></div>
+      <div class="game-info-row"><p>Tempo:</p><span class="info-data" id="timeElapsed">0 min 0 seg</span></div>
+      <div class="game-info-row"><p>Tentativas:</p><span class="info-data" id="attempts">0</span></div>
+      <div class="game-info-row"><p>Acertos:</p><span class="info-data" id="matches">0</span></div>
+    </div>
+  </div>
+  <div class="modal-overlay" id="modalOverlay"></div>
+  <div class="modal" id="winModal" role="dialog" aria-modal="true" aria-labelledby="winMessage">
+    <h2>Parabéns!</h2>
+    <p id="winMessage"></p>
+    <div id="finalStats"></div>
+    <button id="playAgainBtn" onclick="startGame()">Jogar Novamente</button>
+    <button onclick="returnToMenu()">Menu Principal</button>
+  </div>
+  <script src="music-fade.js"></script>
+  <script src="script_hiragana_imagem.js"></script>
+</body>
+</html>
