@@ -62,16 +62,19 @@
   // Timer
   let timerInterval = null, startTime = 0;
 
-  // Função para pré-carregar todas as imagens
+  // Função para pré-carregar todas as imagens (agora síncrono com Promise)
   function preloadImages() {
     const loaded = new Set();
-    Object.values(words).flat().forEach(word => {
-      if (!loaded.has(word.image)) {
+    const images = Object.values(words).flat().map(word => word.image);
+    const uniqueImages = [...new Set(images)];
+    return Promise.all(uniqueImages.map(src => {
+      return new Promise(resolve => {
         const img = new Image();
-        img.src = word.image;
-        loaded.add(word.image);
-      }
-    });
+        img.onload = () => resolve();
+        img.onerror = () => resolve(); // ignora erro, não trava
+        img.src = src;
+      });
+    }));
   }
 
   // Função para iniciar o jogo
@@ -87,7 +90,12 @@
     // Criar cartas: cada par = 1 carta hiragana + 1 carta imagem
     let cards = [];
     selectedWords.forEach(word => {
-      cards.push({ type: 'hiragana', value: word.hiragana, pairId: word.hiragana });
+      // Define tamanho da fonte conforme número de caracteres
+      let fontSize = '1.3em';
+      if (word.hiragana.length === 1) fontSize = '2.0em';
+      else if (word.hiragana.length === 2) fontSize = '1.8em';
+      // Adiciona carta hiragana com estilo inline
+      cards.push({ type: 'hiragana', value: word.hiragana, pairId: word.hiragana, fontSize });
       cards.push({ type: 'imagem', value: `<img src='${word.image}' alt='${word.hiragana}' class='img-card'>`, pairId: word.hiragana });
     });
     // Garante que o número de cartas seja igual ao selecionado
@@ -115,7 +123,7 @@
       cardEl.dataset.type = card.type;
       // Salva o conteúdo real da carta para uso posterior
       if (card.type === 'hiragana') {
-        cardEl.dataset.realContent = `<span class='hiragana-card'>${card.value}</span>`;
+        cardEl.dataset.realContent = `<span class='hiragana-card' style='font-size:${card.fontSize};'>${card.value}</span>`;
       } else {
         cardEl.dataset.realContent = `<div class='img-card-wrap'>${card.value}</div>`;
       }
@@ -182,11 +190,13 @@
       alert('Selecione um modo de dificuldade antes de iniciar o jogo!');
       return;
     }
-    preloadImages();
-    document.querySelector('.menu').style.display = 'none';
-    document.getElementById('gameContainer').style.display = 'flex';
-    document.querySelector('.game-controls').style.display = 'flex';
-    window.startGame();
+    // Pré-carrega imagens e só inicia o jogo após todas carregarem
+    preloadImages().then(() => {
+      document.querySelector('.menu').style.display = 'none';
+      document.getElementById('gameContainer').style.display = 'flex';
+      document.querySelector('.game-controls').style.display = 'flex';
+      window.startGame();
+    });
   };
 
   // Função para virar carta
