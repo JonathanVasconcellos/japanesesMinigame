@@ -22,14 +22,16 @@
         <button class="music-toggle-btn" type="button">Pausar Música</button>
       </div>
     </div>
-    <div style="margin-bottom: 10px;">
-      <label for="cardCount">Número de cartas:</label>
+    <div style="margin-bottom: 10px; display: flex; align-items: center; gap: 8px; justify-content: center;">
+      <button id="selectAllSetsBtn" type="button" class="menu-btn">Selecionar todos</button>
+      <label for="cardCount" style="margin: 0 4px;">Número de cartas:</label>
       <select id="cardCount">
         <option value="8">8</option>
         <option value="16">16</option>
         <option value="20">20</option>
         <option value="30">30</option>
       </select>
+      <button id="clearAllSetsBtn" type="button" class="menu-btn">Limpar seleção</button>
     </div>
     <div class="checkbox-container" style="margin-bottom: 10px;">
       <label><input type="checkbox" class="setCheck" value="vowels" checked> Vogais (あ, い, う, え, お)</label>
@@ -48,6 +50,7 @@
       <label><input type="checkbox" class="setCheck" value="dSeries"> Série D (だ, ぢ, づ, で, ど)</label>
       <label><input type="checkbox" class="setCheck" value="bSeries"> Série B (ば, び, ぶ, べ, ぼ)</label>
       <label><input type="checkbox" class="setCheck" value="pSeries"> Série P (ぱ, ぴ, ぷ, ぺ, ぽ)</label>
+      <!-- Botões agora estão ao lado do seletor de cartas -->
     </div>
     <div id="errorMessage" class="error" aria-live="polite"></div>
   </div>

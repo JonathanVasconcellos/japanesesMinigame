@@ -46,6 +46,8 @@
   const backgroundMusic = new Audio("Sound/background.mp3");
   backgroundMusic.loop = true;
   backgroundMusic.volume = 0.3;
+  // Pré-carregar sons
+  [flipSound, matchSound, errorSound, winSound, clickSound, backgroundMusic].forEach(audio => audio.load());
   // Música automática
   window.addEventListener('load', () => {
     backgroundMusic.play().catch(() => {});
@@ -95,6 +97,8 @@
   let errorStats = {};
   const trainingLimit = 30;
   let selectedChars = [];
+  // Para ciclo completo de treino
+  let trainingPool = [];
   function shuffle(array) {
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -120,6 +124,32 @@
     });
     return validSets;
   }
+
+  // Botões Selecionar todos / Limpar seleção
+  document.addEventListener('DOMContentLoaded', function() {
+    const selectAllBtn = document.getElementById('selectAllSetsBtn');
+    const clearAllBtn = document.getElementById('clearAllSetsBtn');
+    const setCheckboxes = () => document.querySelectorAll('.setCheck');
+
+    if (selectAllBtn) {
+      selectAllBtn.addEventListener('click', function() {
+        clickSound.play();
+        const cbs = setCheckboxes();
+        for (let i = 0; i < cbs.length; i++) {
+          cbs[i].checked = true;
+        }
+      });
+    }
+    if (clearAllBtn) {
+      clearAllBtn.addEventListener('click', function() {
+        clickSound.play();
+        const cbs = setCheckboxes();
+        for (let i = 0; i < cbs.length; i++) {
+          cbs[i].checked = false;
+        }
+      });
+    }
+  });
   function startGame() {
     clickSound.play();
     document.querySelector('h1').style.display = 'none';
@@ -192,14 +222,17 @@
     document.getElementById("matches").textContent = "0";
     if (timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(updateTime, 1000);
+    // Otimização: criar todas as cartas em um fragmento e inserir de uma vez
+    const fragment = document.createDocumentFragment();
     shuffled.forEach(char => {
       const card = document.createElement("div");
       card.classList.add("card");
       card.dataset.char = char;
       card.innerText = "?";
       card.addEventListener("click", () => flipCard(card));
-      gameBoard.appendChild(card);
+      fragment.appendChild(card);
     });
+    gameBoard.appendChild(fragment);
     const totalCells = columns * rows;
     while (gameBoard.children.length < totalCells) {
       const emptyCard = document.createElement("div");
@@ -248,21 +281,20 @@
     document.getElementById("errorList").style.display = "none";
     selectedChars = [];
     const selectedSets = validateSelectedSets(checkboxes);
-    console.log("Conjuntos validados:", selectedSets); // Log de depuração
     selectedSets.forEach(set => {
       selectedChars = selectedChars.concat(set.map(([hiragana]) => hiragana));
     });
     if (selectedChars.length === 0) {
       errorMessage.textContent = "Nenhum conjunto válido selecionado!";
-      console.log("Nenhum caractere selecionado"); // Log de depuração
       return;
     }
     errorMessage.textContent = "";
+    // Inicializa o pool de treino com ciclo completo embaralhado
+    trainingPool = shuffle(selectedChars.slice());
     nextTrainingChar();
     document.querySelector('.menu').style.display = 'none';
     document.querySelector('.training-controls').style.display = 'flex';
     trainingContainer.style.display = 'flex';
-    console.log("Modo treino iniciado com sucesso"); // Log de depuração
   }
   function restartTraining() {
     clickSound.play();
@@ -280,6 +312,7 @@
     document.querySelector(".restart-training-btn").style.display = "none";
     document.getElementById("feedback").textContent = "";
     document.getElementById("errorList").style.display = "none";
+    trainingPool = shuffle(selectedChars.slice());
     nextTrainingChar();
   }
   function nextTrainingChar() {
@@ -317,21 +350,14 @@
       return;
     }
 
-    // Priorizar caracteres com mais erros
-    const weightedChars = [];
-    selectedChars.forEach(char => {
-      const errorCount = errorStats[char]?.length || 0;
-      for (let i = 0; i <= errorCount; i++) {
-        weightedChars.push(char);
-      }
-    });
-
-    // Embaralhar os caracteres ponderados
-    const shuffledChars = shuffle(weightedChars);
+    // Otimização: ciclo completo antes de repetir
+    if (!trainingPool || trainingPool.length === 0) {
+      trainingPool = shuffle(selectedChars.slice());
+    }
     let nextChar;
     do {
-      nextChar = shuffledChars.pop();
-    } while (nextChar === lastTrainingChar && shuffledChars.length > 0);
+      nextChar = trainingPool.pop();
+    } while (nextChar === lastTrainingChar && trainingPool.length > 0);
 
     lastTrainingChar = nextChar;
     currentTrainingChar = nextChar;
