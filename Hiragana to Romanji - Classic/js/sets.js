@@ -1,7 +1,6 @@
-// Encapsulamento de todo o código JS em um IIFE para evitar poluir o escopo global
-(function() {
-  // Conjuntos de caracteres Hiragana e Romanji
-  const sets = {
+// Conjuntos de caracteres Hiragana e Romanji
+document.addEventListener('DOMContentLoaded', function() {
+  window.sets = {
     vowels: [["あ", "a"], ["い", "i"], ["う", "u"], ["え", "e"], ["お", "o"]],
     kSeries: [["か", "ka"], ["き", "ki"], ["く", "ku"], ["け", "ke"], ["こ", "ko"]],
     sSeries: [["さ", "sa"], ["し", "shi"], ["す", "su"], ["せ", "se"], ["そ", "so"]],
@@ -19,7 +18,7 @@
     bSeries: [["ば", "ba"], ["び", "bi"], ["ぶ", "bu"], ["べ", "be"], ["ぼ", "bo"]],
     pSeries: [["ぱ", "pa"], ["ぴ", "pi"], ["ぷ", "pu"], ["ぺ", "pe"], ["ぽ", "po"]]
   };
-  const setNames = {
+  window.setNames = {
     vowels: "Vogais",
     kSeries: "Série K",
     sSeries: "Série S",
@@ -37,10 +36,4 @@
     bSeries: "Série B",
     pSeries: "Série P"
   };
-  // ...utilitários agora em audioUtils.js e uiUtils.js...
-  // ...estado do treino e utilitários...
-  // Estado do treino
-  // ...apenas utilitários e estado global...
-  // Para ciclo completo de treino
-// ...existing code...
-})()
+});
