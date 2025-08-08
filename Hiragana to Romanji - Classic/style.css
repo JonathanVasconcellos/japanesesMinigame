@@ -115,6 +115,29 @@ body.dark-mode .menu {
   flex-direction: row;
   justify-content: center;
   gap: 20px;
+
+.menu-btn {
+  font-size: 1em;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  background: #d32f2f;
+  color: #fff;
+  cursor: pointer;
+  margin: 0 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  transition: background 0.2s, color 0.2s;
+}
+.menu-btn:hover {
+  background: #b71c1c;
+}
+body.dark-mode .menu-btn {
+  background: #444;
+  color: #fff;
+}
+body.dark-mode .menu-btn:hover {
+  background: #222;
+}
   margin: 0 auto;
   max-width: 800px;
 }
