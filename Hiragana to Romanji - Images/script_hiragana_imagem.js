@@ -27,17 +27,40 @@
       { hiragana: "ほん", image: "imagens/hon.png" }
     ],
     advanced: [
-      { hiragana: "こんにちは", image: "imagens/konnichiwa.png" },
-      { hiragana: "ありがとう", image: "imagens/arigatou.png" },
-      { hiragana: "さようなら", image: "imagens/sayounara.png" },
-      { hiragana: "おはよう", image: "imagens/ohayou.png" },
-      { hiragana: "いってきます", image: "imagens/itterasshai.png" },
-      { hiragana: "おやすみ", image: "imagens/oyasumi.png" },
-      { hiragana: "すみません", image: "imagens/sumimasen.png" },
-      { hiragana: "おねがいします", image: "imagens/onegaishimasu.png" },
-      { hiragana: "はじめまして", image: "imagens/hajimemashite.png" },
-      { hiragana: "いらっしゃい", image: "imagens/irasshai.png" }
-    ]
+  { hiragana: "あかちゃん", romanji: "akachan", image: "imagens/akachan.png" },           // bebê
+  { hiragana: "いけばな", romanji: "ikebana", image: "imagens/ikebana.png" },            // arranjo floral
+  { hiragana: "うみべ", romanji: "umibe", image: "imagens/umibe.png" },                  // praia
+  { hiragana: "えんとつ", romanji: "entotsu", image: "imagens/entotsu.png" },            // chaminé
+  { hiragana: "おにぎり", romanji: "onigiri", image: "imagens/onigiri.png" },            // bolinho de arroz
+  { hiragana: "かぼちゃ", romanji: "kabocha", image: "imagens/kabocha.png" },            // abóbora
+  { hiragana: "きもの", romanji: "kimono", image: "imagens/kimono.png" },                // quimono
+  { hiragana: "くつした", romanji: "kutsushita", image: "imagens/kutsushita.png" },      // meia
+  { hiragana: "けいと", romanji: "keito", image: "imagens/keito.png" },                  // lã
+  { hiragana: "こうえん", romanji: "kouen", image: "imagens/kouen.png" },                // parque
+  { hiragana: "さくら", romanji: "sakura", image: "imagens/sakura.png" },                // cerejeira
+  { hiragana: "しんごう", romanji: "shingou", image: "imagens/shingou.png" },            // semáforo
+  { hiragana: "すいか", romanji: "suika", image: "imagens/suika.png" },                  // melancia
+  { hiragana: "せんぷうき", romanji: "senpuuki", image: "imagens/senpuuki.png" },        // ventilador
+  { hiragana: "そで", romanji: "sode", image: "imagens/sode.png" },                      // manga (de roupa)
+  { hiragana: "たいや", romanji: "taiya", image: "imagens/taiya.png" },                  // pneu
+  { hiragana: "つきよ", romanji: "tsukiyo", image: "imagens/tsukiyo.png" },              // noite de lua
+  { hiragana: "てぶくろ", romanji: "tebukuro", image: "imagens/tebukuro.png" },          // luva
+  { hiragana: "とんぼ", romanji: "tonbo", image: "imagens/tonbo.png" },                  // libélula
+  { hiragana: "なわとび", romanji: "nawatobi", image: "imagens/nawatobi.png" },          // corda de pular
+  { hiragana: "にわとり", romanji: "niwatori", image: "imagens/niwatori.png" },          // galinha
+  { hiragana: "ねっと", romanji: "netto", image: "imagens/netto.png" },                  // rede (ex.: rede de pesca)
+  { hiragana: "はしご", romanji: "hashigo", image: "imagens/hashigo.png" },              // escada
+  { hiragana: "ひまわり", romanji: "himawari", image: "imagens/himawari.png" },          // girassol
+  { hiragana: "ふうせん", romanji: "fuusen", image: "imagens/fuusen.png" },              // balão
+  { hiragana: "へや", romanji: "heya", image: "imagens/heya.png" },                      // quarto
+  { hiragana: "ほたる", romanji: "hotaru", image: "imagens/hotaru.png" },                // vagalume
+  { hiragana: "まくら", romanji: "makura", image: "imagens/makura.png" },                // travesseiro
+  { hiragana: "みずうみ", romanji: "mizuumi", image: "imagens/mizuumi.png" },            // lago
+  { hiragana: "むすび", romanji: "musubi", image: "imagens/musubi.png" },                // nó
+  { hiragana: "やかん", romanji: "yakan", image: "imagens/yakan.png" },                  // chaleira
+  { hiragana: "ゆうびん", romanji: "yuubin", image: "imagens/yuubin.png" },              // correio
+  { hiragana: "よっと", romanji: "yotto", image: "imagens/yotto.png" }                 // iate
+  ]
   };
 
   // Sons
@@ -157,13 +180,7 @@
     matches = 0;
   };
 
-  // Desativa o modo avançado
-  const advancedCheckbox = document.querySelector('.setCheck[value="advanced"]');
-  if (advancedCheckbox) {
-    advancedCheckbox.disabled = true;
-    advancedCheckbox.parentElement.style.opacity = '0.5';
-    advancedCheckbox.parentElement.title = 'Modo avançado desativado temporariamente';
-  }
+
 
   // Seleção única de dificuldade
   const checkboxes = document.querySelectorAll('.setCheck');
