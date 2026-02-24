@@ -18,7 +18,6 @@
         <button onclick="window.location.href='../index.html'">Sair</button>
       </div>
       <div class="menu-row menu-row-bottom">
-        <button class="theme-toggle-btn" type="button">Modo Escuro</button>
         <button class="music-toggle-btn" type="button">Pausar Música</button>
       </div>
     </div>
@@ -32,6 +31,17 @@
         <option value="30">30</option>
       </select>
       <button id="clearAllSetsBtn" type="button" class="menu-btn">Limpar seleção</button>
+    </div>
+    <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 15px; justify-content: center; padding: 10px; background: rgba(255, 85, 85, 0.15); border-radius: 8px;">
+      <span style="font-weight: bold;">Alfabeto:</span>
+      <label style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
+        <input type="radio" name="alphabet" value="hiragana" checked onchange="window.switchAlphabet('hiragana')">
+        <span>Hiragana (あ)</span>
+      </label>
+      <label style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
+        <input type="radio" name="alphabet" value="katakana" onchange="window.switchAlphabet('katakana')">
+        <span>Katakana (ア)</span>
+      </label>
     </div>
     <div class="checkbox-container" style="margin-bottom: 10px;">
       <label><input type="checkbox" class="setCheck" value="vowels" checked> Vogais (あ, い, う, え, お)</label>
@@ -57,7 +67,6 @@
   <div class="game-controls" style="display: none;">
     <button class="return-menu-btn" type="button">Voltar ao Menu</button>
     <button class="music-toggle-btn" type="button">Pausar Música</button>
-    <button class="theme-toggle-btn" type="button">Modo Escuro</button>
   </div>
   <div class="game-container" id="gameContainer">
     <div class="board" id="gameBoard"></div>
@@ -89,7 +98,6 @@
       <div class="training-nav-buttons">
         <button class="return-menu-btn" type="button">Voltar ao Menu</button>
         <button class="music-toggle-btn" type="button">Pausar Música</button>
-        <button class="theme-toggle-btn" type="button">Modo Claro</button>
       </div>
     </div>
     <div class="feedback" id="feedback"></div>

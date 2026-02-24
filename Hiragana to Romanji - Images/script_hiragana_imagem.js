@@ -154,7 +154,7 @@
     const gameBoard = document.getElementById('gameBoard');
     gameBoard.innerHTML = '';
 
-    // Definir grid do tabuleiro
+    // Definir grid do tabuleiro de forma mais simétrica e responsiva
     let columns = Math.ceil(Math.sqrt(cards.length));
     let rows = Math.ceil(cards.length / columns);
     if (cards.length === 8) { columns = 4; rows = 2; }
@@ -339,20 +339,4 @@
     };
   }
 
-  // Modo escuro
-  document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
-    btn.onclick = function() {
-      document.body.classList.toggle('dark-mode');
-      btn.textContent = document.body.classList.contains('dark-mode') ? 'Modo Claro' : 'Modo Escuro';
-      localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
-    };
-    // Estado inicial do texto
-    btn.textContent = document.body.classList.contains('dark-mode') ? 'Modo Claro' : 'Modo Escuro';
-  });
-
-  // Carregar tema salvo
-  if (localStorage.getItem('theme') === 'dark') {
-    document.body.classList.add('dark-mode');
-    document.querySelectorAll('.theme-toggle-btn').forEach(btn => btn.textContent = 'Modo Claro');
-  }
 })();

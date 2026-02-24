@@ -103,20 +103,20 @@
     const shuffled = shuffle(characters);
     let columns, rows;
     if (cardCount === 8) {
-      columns = 2;
-      rows = 4;
+      columns = 4;
+      rows = 2;
     } else if (cardCount === 16) {
       columns = 4;
       rows = 4;
     } else if (cardCount === 20) {
-      columns = 4;
-      rows = 5;
-    } else if (cardCount === 30) {
       columns = 5;
-      rows = 6;
+      rows = 4;
+    } else if (cardCount === 30) {
+      columns = 6;
+      rows = 5;
     }
-    gameBoard.style.gridTemplateColumns = `repeat(${columns}, 80px)`;
-    gameBoard.style.gridTemplateRows = `repeat(${rows}, 80px)`;
+    gameBoard.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+    gameBoard.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
     gameBoard.innerHTML = "";
     firstCard = null;
     secondCard = null;
@@ -141,15 +141,7 @@
       fragment.appendChild(card);
     });
     gameBoard.appendChild(fragment);
-    const totalCells = columns * rows;
-    while (gameBoard.children.length < totalCells) {
-      const emptyCard = document.createElement("div");
-      emptyCard.classList.add("card");
-      emptyCard.style.background = "transparent";
-      emptyCard.style.border = "none";
-      emptyCard.style.cursor = "default";
-      gameBoard.appendChild(emptyCard);
-    }
+    // Não precisa adicionar células vazias no novo layout
     document.querySelector('.menu').style.display = 'none';
     document.querySelector('.game-controls').style.display = 'flex';
     gameContainer.style.display = 'flex';
