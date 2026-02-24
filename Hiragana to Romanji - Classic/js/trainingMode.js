@@ -114,9 +114,23 @@
         errorList.style.display = "block";
         errorList.innerHTML = "<h4>Caracteres Errados</h4>";
         errorKeys.forEach(char => {
-          const correctRomanji = window.sets[Object.keys(window.sets).find(set => 
+          // Busca a resposta correta com tratamento de erro
+          const setKey = Object.keys(window.sets).find(set => 
             window.sets[set].some(([hiragana]) => hiragana === char)
-          )].find(([hiragana]) => hiragana === char)[1];
+          );
+          
+          if (!setKey) {
+            console.error(`Caractere não encontrado ao listar erros: ${char}`);
+            return;
+          }
+          
+          const pair = window.sets[setKey].find(([hiragana]) => hiragana === char);
+          if (!pair) {
+            console.error(`Par não encontrado ao listar erros: ${char}`);
+            return;
+          }
+          
+          const correctRomanji = pair[1];
           errorStats[char].forEach(error => {
             const errorItem = document.createElement("p");
             errorItem.textContent = `${error.turn} - ${char} → ${error.input} (correto é ${correctRomanji})`;
@@ -152,9 +166,28 @@
     clickSound.play();
     const inputElement = document.getElementById("inputRomanji");
     const input = inputElement.value.trim().toLowerCase();
-    const correctAnswer = window.sets[Object.keys(window.sets).find(set => 
+    
+    // Busca a resposta correta com tratamento de erro
+    const setKey = Object.keys(window.sets).find(set => 
       window.sets[set].some(([hiragana, romanji]) => hiragana === currentTrainingChar)
-    )].find(([hiragana]) => hiragana === currentTrainingChar)[1].toLowerCase();
+    );
+    
+    if (!setKey) {
+      console.error(`Caractere não encontrado nos conjuntos: ${currentTrainingChar}`);
+      errorSound.play();
+      document.getElementById("feedback").textContent = "Erro: caractere inválido!";
+      return;
+    }
+    
+    const pair = window.sets[setKey].find(([hiragana]) => hiragana === currentTrainingChar);
+    if (!pair) {
+      console.error(`Par não encontrado para: ${currentTrainingChar}`);
+      errorSound.play();
+      document.getElementById("feedback").textContent = "Erro: par inválido!";
+      return;
+    }
+    
+    const correctAnswer = pair[1].toLowerCase();
     if (input === correctAnswer) {
       matchSound.play();
       document.getElementById("feedback").textContent = "Correto!";

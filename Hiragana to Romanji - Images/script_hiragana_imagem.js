@@ -26,7 +26,7 @@
       { hiragana: "おちゃ", image: "imagens/ocha.png" },
       { hiragana: "ほん", image: "imagens/hon.png" }
     ],
-    advanced: [
+    Avancado: [
   { hiragana: "あかちゃん", romanji: "akachan", image: "imagens/akachan.png" },           // bebê
   { hiragana: "いけばな", romanji: "ikebana", image: "imagens/ikebana.png" },            // arranjo floral
   { hiragana: "うみべ", romanji: "umibe", image: "imagens/umibe.png" },                  // praia
@@ -104,11 +104,34 @@
   window.startGame = function() {
     // Obter dificuldade e quantidade de pares
     const checked = document.querySelector('.setCheck:checked');
-    let difficulty = checked ? checked.value : 'basic';
+    let difficulty = checked ? checked.value : 'Basico';
     const pairCount = parseInt(document.getElementById('pairCount').value, 10);
-    // Corrige bug: garantir que o número de pares seja metade do número de cartas
     let maxPairs = pairCount / 2;
-    const selectedWords = shuffle([...words[difficulty]]).slice(0, maxPairs);
+    
+    // Pegar todas as palavras disponíveis
+    const availableWords = [...words[difficulty]];
+    let selectedWords = [];
+    
+    // Se precisar de mais pares do que há disponível, repetir de forma aleatória
+    if (maxPairs <= availableWords.length) {
+      selectedWords = shuffle(availableWords).slice(0, maxPairs);
+    } else {
+      // Usar todas as palavras disponíveis primeiro
+      selectedWords = [...availableWords];
+      const remaining = maxPairs - availableWords.length;
+      
+      // Completar com repetições aleatórias
+      for (let i = 0; i < remaining; i++) {
+        const randomWord = availableWords[Math.floor(Math.random() * availableWords.length)];
+        selectedWords.push(randomWord);
+      }
+      
+      // Embaralhar para distribuir as repetições
+      selectedWords = shuffle(selectedWords);
+    }
+    
+    // Limpar mensagem de erro anterior
+    document.getElementById('errorMessage').textContent = '';
 
     // Criar cartas: cada par = 1 carta hiragana + 1 carta imagem
     let cards = [];
@@ -116,13 +139,16 @@
       // Define tamanho da fonte conforme número de caracteres
       let fontSize = '1.3em';
       if (word.hiragana.length === 1) fontSize = '2.0em';
-      else if (word.hiragana.length === 2) fontSize = '1.8em';
+      else if (word.hiragana.length === 2) fontSize = '1.6em';
+      else if (word.hiragana.length === 3) fontSize = '1.2em';
+      else if (word.hiragana.length === 4) fontSize = '0.95em';
+      else if (word.hiragana.length >= 5) fontSize = '0.75em';
       // Adiciona carta hiragana com estilo inline
       cards.push({ type: 'hiragana', value: word.hiragana, pairId: word.hiragana, fontSize });
       cards.push({ type: 'imagem', value: `<img src='${word.image}' alt='${word.hiragana}' class='img-card'>`, pairId: word.hiragana });
     });
-    // Garante que o número de cartas seja igual ao selecionado
-    cards = shuffle(cards).slice(0, pairCount);
+    // Embaralha as cartas (não precisa de slice pois selectedWords já tem exatamente maxPairs palavras)
+    cards = shuffle(cards);
 
     // Renderizar tabuleiro
     const gameBoard = document.getElementById('gameBoard');
@@ -160,7 +186,12 @@
     document.getElementById('attempts').textContent = '0';
     document.getElementById('matches').textContent = '0';
     document.getElementById('timeElapsed').textContent = '0 min 0 seg';
-    document.getElementById('modeInfo').textContent = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+    const modeLabels = {
+      Basico: 'Básico',
+      Intermediario: 'Intermediário',
+      Avancado: 'Avançado'
+    };
+    document.getElementById('modeInfo').textContent = modeLabels[difficulty] || 'Básico';
 
     // Timer
     if (timerInterval) clearInterval(timerInterval);
@@ -178,6 +209,7 @@
     lockBoard = false;
     attempts = 0;
     matches = 0;
+    window.totalPairs = maxPairs; // Armazena total de pares esperado
   };
 
 
@@ -209,6 +241,7 @@
     }
     // Pré-carrega imagens e só inicia o jogo após todas carregarem
     preloadImages().then(() => {
+      document.querySelector('h1').style.display = 'none';
       document.querySelector('.menu').style.display = 'none';
       document.getElementById('gameContainer').style.display = 'flex';
       document.querySelector('.game-controls').style.display = 'flex';
@@ -244,7 +277,7 @@
       matches++;
       document.getElementById('matches').textContent = matches;
       matchSound.play();
-      if (matches === document.getElementById('gameBoard').children.length / 2) {
+      if (matches === window.totalPairs) {
         winSound.play();
         showWinModal();
         if (timerInterval) clearInterval(timerInterval);
@@ -276,6 +309,7 @@
   }
 
   window.returnToMenu = function() {
+    document.querySelector('h1').style.display = 'block';
     document.getElementById('gameContainer').style.display = 'none';
     document.querySelector('.menu').style.display = 'block';
     document.querySelector('.game-controls').style.display = 'none';
@@ -292,19 +326,18 @@
     };
   });
 
-  document.querySelector('.start-game-btn').onclick = function() {
-    preloadImages();
-    document.querySelector('.menu').style.display = 'none';
-    document.getElementById('gameContainer').style.display = 'flex';
-    document.querySelector('.game-controls').style.display = 'flex';
-    window.startGame();
-  };
-
   document.getElementById('playAgainBtn').onclick = function() {
     document.getElementById('winModal').style.display = 'none';
     document.getElementById('modalOverlay').style.display = 'none';
     window.startGame();
   };
+
+  const menuPrincipalBtn = document.getElementById('menuPrincipalBtn');
+  if (menuPrincipalBtn) {
+    menuPrincipalBtn.onclick = function() {
+      window.returnToMenu();
+    };
+  }
 
   // Modo escuro
   document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
