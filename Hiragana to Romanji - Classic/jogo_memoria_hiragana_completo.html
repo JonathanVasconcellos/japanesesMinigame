@@ -11,19 +11,19 @@
 <body>
   <h1>Jogo da Memória - Modo Clássico</h1>
   <div class="menu">
-    <div class="menu-buttons" style="margin-bottom: 10px;">
+    <div class="menu-buttons menu-section-spacing">
       <div class="menu-row menu-row-top">
         <button class="start-game-btn" type="button">Iniciar Jogo</button>
         <button class="start-training-btn" type="button">Treino</button>
-        <button onclick="window.location.href='../index.html'">Sair</button>
+        <button id="exitToHomeBtn" type="button">Sair</button>
       </div>
       <div class="menu-row menu-row-bottom">
         <button class="music-toggle-btn" type="button">Pausar Música</button>
       </div>
     </div>
-    <div style="margin-bottom: 10px; display: flex; align-items: center; gap: 8px; justify-content: center;">
+    <div class="menu-inline-controls menu-section-spacing">
       <button id="selectAllSetsBtn" type="button" class="menu-btn">Selecionar todos</button>
-      <label for="cardCount" style="margin: 0 4px;">Número de cartas:</label>
+      <label for="cardCount" class="menu-inline-label">Número de cartas:</label>
       <select id="cardCount">
         <option value="8">8</option>
         <option value="16">16</option>
@@ -32,18 +32,18 @@
       </select>
       <button id="clearAllSetsBtn" type="button" class="menu-btn">Limpar seleção</button>
     </div>
-    <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 15px; justify-content: center; padding: 10px; background: rgba(255, 85, 85, 0.15); border-radius: 8px;">
-      <span style="font-weight: bold;">Alfabeto:</span>
-      <label style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
-        <input type="radio" name="alphabet" value="hiragana" checked onchange="window.switchAlphabet('hiragana')">
+    <div class="alphabet-selector">
+      <span class="alphabet-title">Alfabeto:</span>
+      <label class="alphabet-option">
+        <input type="radio" name="alphabet" value="hiragana" checked>
         <span>Hiragana (あ)</span>
       </label>
-      <label style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
-        <input type="radio" name="alphabet" value="katakana" onchange="window.switchAlphabet('katakana')">
+      <label class="alphabet-option">
+        <input type="radio" name="alphabet" value="katakana">
         <span>Katakana (ア)</span>
       </label>
     </div>
-    <div class="checkbox-container" style="margin-bottom: 10px;">
+    <div class="checkbox-container menu-section-spacing">
       <label><input type="checkbox" class="setCheck" value="vowels" checked> Vogais (あ, い, う, え, お)</label>
       <label><input type="checkbox" class="setCheck" value="kSeries"> Série K (か, き, く, け, こ)</label>
       <label><input type="checkbox" class="setCheck" value="sSeries"> Série S (さ, し, す, せ, そ)</label>
@@ -64,7 +64,7 @@
     </div>
     <div id="errorMessage" class="error" aria-live="polite"></div>
   </div>
-  <div class="game-controls" style="display: none;">
+  <div class="game-controls">
     <button class="return-menu-btn" type="button">Voltar ao Menu</button>
     <button class="music-toggle-btn" type="button">Pausar Música</button>
   </div>
@@ -78,7 +78,7 @@
       <div class="game-info-row"><p>Acertos:</p><span class="info-data" id="matches">0</span></div>
     </div>
   </div>
-  <div class="training-container" id="trainingContainer" style="display: none;">
+  <div class="training-container" id="trainingContainer">
     <div class="training-info" id="trainingInfo">
       <h3>Informações do Treino</h3>
       <div class="info-data">
@@ -93,7 +93,7 @@
     <div class="training-controls">
       <div class="training-action-buttons">
         <button class="confirm-training-btn" type="button">Confirmar</button>
-        <button class="restart-training-btn" type="button" style="display: none;">Reiniciar Treino</button>
+        <button class="restart-training-btn hidden" type="button">Reiniciar Treino</button>
       </div>
       <div class="training-nav-buttons">
         <button class="return-menu-btn" type="button">Voltar ao Menu</button>
@@ -101,7 +101,7 @@
       </div>
     </div>
     <div class="feedback" id="feedback"></div>
-    <div class="error-list" id="errorList" style="display: none;"></div>
+    <div class="error-list hidden" id="errorList"></div>
   </div>
   <div class="modal-overlay" id="modalOverlay"></div>
   <div class="modal" id="winModal">

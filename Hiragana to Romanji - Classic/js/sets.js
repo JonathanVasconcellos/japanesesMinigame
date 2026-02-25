@@ -88,4 +88,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Inicializa os labels
   updateCheckboxLabels();
+
+  const alphabetRadios = document.querySelectorAll('input[name="alphabet"]');
+  alphabetRadios.forEach(radio => {
+    radio.addEventListener('change', function() {
+      window.switchAlphabet(this.value);
+    });
+  });
+
+  const exitToHomeBtn = document.getElementById('exitToHomeBtn');
+  if (exitToHomeBtn) {
+    exitToHomeBtn.addEventListener('click', () => {
+      window.location.href = '../index.html';
+    });
+  }
 });

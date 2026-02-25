@@ -136,9 +136,62 @@
   const errorSound = new Audio("audios/error.mp3");
   const winSound = new Audio("audios/win.mp3");
   const clickSound = new Audio("audios/click.mp3");
-  const backgroundMusic = new Audio("audios/background.mp3");
-  backgroundMusic.loop = true;
-  backgroundMusic.volume = 0.3;
+  [flipSound, matchSound, errorSound, winSound, clickSound].forEach(audio => audio.load());
+  const gridByCardCount = {
+    8: { columns: 4, rows: 2 },
+    16: { columns: 4, rows: 4 },
+    20: { columns: 5, rows: 4 },
+    30: { columns: 6, rows: 5 }
+  };
+
+  function getMusicPlayer() {
+    if (!window.globalAudio) {
+      const audio = new Audio("audios/background.mp3");
+      audio.loop = true;
+      audio.volume = 0.3;
+      window.globalAudio = audio;
+    }
+    return window.globalAudio;
+  }
+
+  function syncMusicButtons() {
+    const audio = window.globalAudio;
+    const isPlaying = !!audio && !audio.paused;
+    const label = isPlaying ? "Pausar Música" : "Retomar Música";
+    document.querySelectorAll('.music-toggle-btn').forEach(btn => {
+      btn.textContent = label;
+    });
+  }
+
+  function tryStartMusic() {
+    const audio = getMusicPlayer();
+    if (audio.paused) {
+      audio.play().then(syncMusicButtons).catch(syncMusicButtons);
+      return;
+    }
+    syncMusicButtons();
+  }
+
+  window.toggleMusic = function() {
+    const audio = getMusicPlayer();
+    clickSound.play().catch(() => {});
+    if (audio.paused) {
+      audio.play().catch(() => {});
+    } else {
+      audio.pause();
+    }
+    syncMusicButtons();
+  };
+
+  document.addEventListener('click', function(e) {
+    const toggleBtn = e.target.closest('.music-toggle-btn');
+    if (!toggleBtn) return;
+    window.toggleMusic();
+  });
+
+  window.addEventListener('load', tryStartMusic, { once: true });
+  document.addEventListener('pointerdown', tryStartMusic, { once: true });
+  document.addEventListener('DOMContentLoaded', syncMusicButtons);
 
   // Função para embaralhar array
   function shuffle(array) {
@@ -151,43 +204,108 @@
 
   // Timer
   let timerInterval = null, startTime = 0;
+  const preloadedImages = new Set();
 
-  // Função para pré-carregar todas as imagens (agora síncrono com Promise)
-  function preloadImages() {
-    const loaded = new Set();
-    const images = Object.values(words).flat().map(word => word.image);
-    const uniqueImages = [...new Set(images)];
+  function getAvailableWordsForSelection() {
+    const alphabetRadio = document.querySelector('input[name="alphabet"]:checked');
+    currentAlphabet = alphabetRadio ? alphabetRadio.value : 'hiragana';
+
+    if (currentAlphabet === 'expert') {
+      const allHiragana = [...wordsHiragana.Basico, ...wordsHiragana.Intermediario, ...wordsHiragana.Avancado];
+      const allKatakana = [...wordsKatakana.Basico, ...wordsKatakana.Intermediario, ...wordsKatakana.Avancado];
+      return [...allHiragana, ...allKatakana];
+    }
+
+    const checked = document.querySelector('.setCheck:checked');
+    const difficulty = checked ? checked.value : 'Basico';
+    words = currentAlphabet === 'hiragana' ? wordsHiragana : wordsKatakana;
+    return [...words[difficulty]];
+  }
+
+  function preloadImages(wordList) {
+    const images = (wordList || []).map(word => word.image).filter(Boolean);
+    const uniqueImages = [...new Set(images)].filter(src => !preloadedImages.has(src));
+    if (uniqueImages.length === 0) {
+      return Promise.resolve();
+    }
+
     return Promise.all(uniqueImages.map(src => {
       return new Promise(resolve => {
         const img = new Image();
-        img.onload = () => resolve();
+        img.onload = () => {
+          preloadedImages.add(src);
+          resolve();
+        };
         img.onerror = () => resolve(); // ignora erro, não trava
         img.src = src;
       });
     }));
   }
 
+  function schedulePreloadForSelection(immediate = false) {
+    const selectedWords = getAvailableWordsForSelection();
+    if (selectedWords.length === 0) return;
+
+    const preloadTask = () => {
+      preloadImages(selectedWords).catch(() => {});
+    };
+
+    if (immediate) {
+      preloadTask();
+      return;
+    }
+
+    if (typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(preloadTask, { timeout: 1200 });
+      return;
+    }
+    setTimeout(preloadTask, 0);
+  }
+
+  function getFontSizeByLength(length) {
+    if (length === 1) return '1.3em';
+    if (length === 2) return '1.0em';
+    if (length === 3) return '0.8em';
+    if (length === 4) return '0.65em';
+    if (length >= 5) return '0.5em';
+    return '0.9em';
+  }
+
+  function renderCardBack(cardEl) {
+    cardEl.replaceChildren();
+    const marker = document.createElement('span');
+    marker.textContent = '?';
+    cardEl.appendChild(marker);
+  }
+
+  function renderCardFront(cardEl) {
+    const cardType = cardEl.dataset.type;
+    const cardValue = cardEl.dataset.value || '';
+    const pairId = cardEl.dataset.pairId || '';
+
+    cardEl.replaceChildren();
+    if (cardType === 'hiragana') {
+      const span = document.createElement('span');
+      span.className = 'hiragana-card';
+      span.style.fontSize = getFontSizeByLength(cardValue.length);
+      span.textContent = cardValue;
+      cardEl.appendChild(span);
+      return;
+    }
+
+    const wrap = document.createElement('div');
+    wrap.className = 'img-card-wrap';
+    const image = document.createElement('img');
+    image.className = 'img-card';
+    image.src = cardValue;
+    image.alt = pairId;
+    wrap.appendChild(image);
+    cardEl.appendChild(wrap);
+  }
+
   // Função para iniciar o jogo
   window.startGame = function() {
-    // Obter alfabeto selecionado
-    const alphabetRadio = document.querySelector('input[name="alphabet"]:checked');
-    currentAlphabet = alphabetRadio ? alphabetRadio.value : 'hiragana';
-    
-    // Definir conjunto de palavras conforme o alfabeto
-    let availableWords = [];
-    
-    if (currentAlphabet === 'expert') {
-      // Modo Expert: mistura TODAS as palavras de ambos os alfabetos
-      const allHiragana = [...wordsHiragana.Basico, ...wordsHiragana.Intermediario, ...wordsHiragana.Avancado];
-      const allKatakana = [...wordsKatakana.Basico, ...wordsKatakana.Intermediario, ...wordsKatakana.Avancado];
-      availableWords = [...allHiragana, ...allKatakana];
-    } else {
-      // Modo Hiragana ou Katakana: usa a dificuldade selecionada
-      const checked = document.querySelector('.setCheck:checked');
-      let difficulty = checked ? checked.value : 'Basico';
-      words = currentAlphabet === 'hiragana' ? wordsHiragana : wordsKatakana;
-      availableWords = [...words[difficulty]];
-    }
+    const availableWords = getAvailableWordsForSelection();
     
     const pairCount = parseInt(document.getElementById('pairCount').value, 10);
     let maxPairs = pairCount / 2;
@@ -210,6 +328,8 @@
       // Embaralhar para distribuir as repetições
       selectedWords = shuffle(selectedWords);
     }
+
+    preloadImages(selectedWords).catch(() => {});
     
     // Limpar mensagem de erro anterior
     document.getElementById('errorMessage').textContent = '';
@@ -217,16 +337,8 @@
     // Criar cartas: cada par = 1 carta hiragana + 1 carta imagem
     let cards = [];
     selectedWords.forEach(word => {
-      // Define tamanho da fonte conforme número de caracteres (ajustado para cards 52x52)
-      let fontSize = '0.9em';
-      if (word.hiragana.length === 1) fontSize = '1.3em';
-      else if (word.hiragana.length === 2) fontSize = '1.0em';
-      else if (word.hiragana.length === 3) fontSize = '0.8em';
-      else if (word.hiragana.length === 4) fontSize = '0.65em';
-      else if (word.hiragana.length >= 5) fontSize = '0.5em';
-      // Adiciona carta hiragana com estilo inline
-      cards.push({ type: 'hiragana', value: word.hiragana, pairId: word.hiragana, fontSize });
-      cards.push({ type: 'imagem', value: `<img src='${word.image}' alt='${word.hiragana}' class='img-card'>`, pairId: word.hiragana });
+      cards.push({ type: 'hiragana', value: word.hiragana, pairId: word.hiragana });
+      cards.push({ type: 'imagem', value: word.image, pairId: word.hiragana });
     });
     // Embaralha as cartas (não precisa de slice pois selectedWords já tem exatamente maxPairs palavras)
     cards = shuffle(cards);
@@ -236,30 +348,21 @@
     gameBoard.innerHTML = '';
 
     // Definir grid do tabuleiro de forma mais simétrica e responsiva
-    let columns = Math.ceil(Math.sqrt(cards.length));
-    let rows = Math.ceil(cards.length / columns);
-    if (cards.length === 8) { columns = 4; rows = 2; }
-    else if (cards.length === 16) { columns = 4; rows = 4; }
-    else if (cards.length === 20) { columns = 5; rows = 4; }
-    else if (cards.length === 30) { columns = 6; rows = 5; }
+    const fallbackColumns = Math.ceil(Math.sqrt(cards.length));
+    const fallbackRows = Math.ceil(cards.length / fallbackColumns);
+    const preset = gridByCardCount[cards.length] || { columns: fallbackColumns, rows: fallbackRows };
     gameBoard.style.display = 'grid';
-    gameBoard.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
-    gameBoard.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+    gameBoard.style.gridTemplateColumns = `repeat(${preset.columns}, 1fr)`;
+    gameBoard.style.gridTemplateRows = `repeat(${preset.rows}, 1fr)`;
 
-    cards.forEach((card, idx) => {
+    cards.forEach(card => {
       const cardEl = document.createElement('div');
       cardEl.className = 'card';
       cardEl.dataset.pairId = card.pairId;
       cardEl.dataset.type = card.type;
-      // Salva o conteúdo real da carta para uso posterior
-      if (card.type === 'hiragana') {
-        cardEl.dataset.realContent = `<span class='hiragana-card' style='font-size:${card.fontSize};'>${card.value}</span>`;
-      } else {
-        cardEl.dataset.realContent = `<div class='img-card-wrap'>${card.value}</div>`;
-      }
-      // Estado inicial: carta virada para baixo
-      cardEl.innerHTML = '<span>?</span>';
-      cardEl.onclick = () => flipCard(cardEl);
+      cardEl.dataset.value = card.value;
+      renderCardBack(cardEl);
+      cardEl.addEventListener('click', () => flipCard(cardEl));
       gameBoard.appendChild(cardEl);
     });
 
@@ -309,7 +412,7 @@
   // Seleção única de dificuldade
   const checkboxes = document.querySelectorAll('.setCheck');
   checkboxes.forEach(cb => {
-    cb.onclick = function(e) {
+    cb.addEventListener('click', function(e) {
       // Se já está marcado, impede desmarcar
       if (cb.checked === false) {
         e.preventDefault();
@@ -317,7 +420,8 @@
       }
       // Marca apenas este e desmarca os outros
       checkboxes.forEach(other => { if (other !== cb) other.checked = false; });
-    };
+      schedulePreloadForSelection(true);
+    });
   });
 
   // Listener para alternar alfabeto e desabilitar dificuldade no modo Expert
@@ -330,15 +434,17 @@
         cb.parentElement.style.opacity = isExpertMode ? '0.5' : '1';
         cb.parentElement.style.cursor = isExpertMode ? 'not-allowed' : 'pointer';
       });
+      schedulePreloadForSelection(true);
     });
   });
 
   // Seleciona o modo básico por padrão ao abrir o menu
   const basicoCheckbox = document.querySelector('.setCheck[value="Basico"]');
   if (basicoCheckbox) basicoCheckbox.checked = true;
+  document.addEventListener('DOMContentLoaded', schedulePreloadForSelection);
 
   // Torna obrigatório selecionar uma dificuldade antes de iniciar o jogo (exceto no modo Expert)
-  document.querySelector('.start-game-btn').onclick = function() {
+  document.querySelector('.start-game-btn').addEventListener('click', function() {
     const alphabetRadio = document.querySelector('input[name="alphabet"]:checked');
     const isExpertMode = alphabetRadio && alphabetRadio.value === 'expert';
     
@@ -346,20 +452,21 @@
     if (!isExpertMode) {
       const checked = document.querySelector('.setCheck:checked');
       if (!checked) {
-        alert('Selecione um modo de dificuldade antes de iniciar o jogo!');
+        document.getElementById('errorMessage').textContent = 'Selecione um modo de dificuldade antes de iniciar o jogo!';
         return;
       }
     }
-    
-    // Pré-carrega imagens e só inicia o jogo após todas carregarem
-    preloadImages().then(() => {
-      document.querySelector('h1').style.display = 'none';
-      document.querySelector('.menu').style.display = 'none';
-      document.getElementById('gameContainer').style.display = 'flex';
-      document.querySelector('.game-controls').style.display = 'flex';
+
+    document.getElementById('errorMessage').textContent = '';
+
+    document.querySelector('h1').style.display = 'none';
+    document.querySelector('.menu').style.display = 'none';
+    document.getElementById('gameContainer').style.display = 'flex';
+    document.querySelector('.game-controls').style.display = 'flex';
+    requestAnimationFrame(() => {
       window.startGame();
     });
-  };
+  });
 
   // Função para virar carta
   let firstCard = null, secondCard = null, lockBoard = false, attempts = 0, matches = 0;
@@ -367,8 +474,7 @@
     if (lockBoard || card.classList.contains('flipped') || card.classList.contains('matched')) return;
     card.classList.add('flipped');
     flipSound.play();
-    // Revela conteúdo salvo no elemento
-    card.innerHTML = card.dataset.realContent;
+    renderCardFront(card);
     if (!firstCard) {
       firstCard = card;
       return;
@@ -399,8 +505,8 @@
       setTimeout(() => {
         firstCard.classList.remove('flipped');
         secondCard.classList.remove('flipped');
-        firstCard.innerHTML = '<span>?</span>';
-        secondCard.innerHTML = '<span>?</span>';
+        renderCardBack(firstCard);
+        renderCardBack(secondCard);
         firstCard = null;
         secondCard = null;
         lockBoard = false;
@@ -415,7 +521,14 @@
   // Modal de vitória
   function showWinModal() {
     document.getElementById('winMessage').textContent = 'Você completou o jogo!';
-    document.getElementById('finalStats').innerHTML = `<p>Tentativas: ${attempts}</p><p>Acertos: ${matches}</p>`;
+    const finalStats = document.getElementById('finalStats');
+    finalStats.replaceChildren();
+    const attemptsInfo = document.createElement('p');
+    attemptsInfo.textContent = `Tentativas: ${attempts}`;
+    const matchesInfo = document.createElement('p');
+    matchesInfo.textContent = `Acertos: ${matches}`;
+    finalStats.appendChild(attemptsInfo);
+    finalStats.appendChild(matchesInfo);
     document.getElementById('winModal').style.display = 'block';
     document.getElementById('modalOverlay').style.display = 'block';
   }
@@ -433,22 +546,29 @@
   // Corrige o botão voltar ao menu
   const returnMenuBtns = document.querySelectorAll('.return-menu-btn');
   returnMenuBtns.forEach(btn => {
-    btn.onclick = function() {
+    btn.addEventListener('click', function() {
       window.returnToMenu();
-    };
+    });
   });
 
-  document.getElementById('playAgainBtn').onclick = function() {
+  document.getElementById('playAgainBtn').addEventListener('click', function() {
     document.getElementById('winModal').style.display = 'none';
     document.getElementById('modalOverlay').style.display = 'none';
     window.startGame();
-  };
+  });
 
   const menuPrincipalBtn = document.getElementById('menuPrincipalBtn');
   if (menuPrincipalBtn) {
-    menuPrincipalBtn.onclick = function() {
+    menuPrincipalBtn.addEventListener('click', function() {
       window.returnToMenu();
-    };
+    });
+  }
+
+  const exitToHomeBtn = document.getElementById('exitToHomeBtn');
+  if (exitToHomeBtn) {
+    exitToHomeBtn.addEventListener('click', function() {
+      window.location.href = '../index.html';
+    });
   }
 
 })();

@@ -1,36 +1,68 @@
 // Utilitários de áudio e sons
 (function() {
-  window.flipSound = new Audio("Sound/flip.mp3");
-  window.matchSound = new Audio("Sound/match.mp3");
-  window.errorSound = new Audio("Sound/error.mp3");
-  window.winSound = new Audio("Sound/win.mp3");
-  window.clickSound = new Audio("Sound/click.mp3");
-  window.backgroundMusic = new Audio("Sound/background.mp3");
+  const flipSound = new Audio("Sound/flip.mp3");
+  const matchSound = new Audio("Sound/match.mp3");
+  const errorSound = new Audio("Sound/error.mp3");
+  const winSound = new Audio("Sound/win.mp3");
+  const clickSound = new Audio("Sound/click.mp3");
 
-  window.getClickSound = function() { return window.clickSound; };
-  window.getBackgroundMusic = function() { return window.backgroundMusic; };
+  function getMusicPlayer() {
+    if (!window.globalAudio) {
+      const audio = new Audio("Sound/background.mp3");
+      audio.loop = true;
+      audio.volume = 0.3;
+      window.globalAudio = audio;
+    }
+    return window.globalAudio;
+  }
+
+  const backgroundMusic = getMusicPlayer();
+
+  window.flipSound = flipSound;
+  window.matchSound = matchSound;
+  window.errorSound = errorSound;
+  window.winSound = winSound;
+  window.clickSound = clickSound;
+  window.backgroundMusic = backgroundMusic;
+
+  window.getClickSound = function() { return clickSound; };
+  window.getBackgroundMusic = function() { return getMusicPlayer(); };
   backgroundMusic.loop = true;
-  backgroundMusic.volume = 0.3;
+  if (backgroundMusic.volume === 1) {
+    backgroundMusic.volume = 0.3;
+  }
   [flipSound, matchSound, errorSound, winSound, clickSound, backgroundMusic].forEach(audio => audio.load());
 
-  window.isMusicPlaying = true;
+  let isMusicPlaying = true;
+  window.isMusicPlaying = isMusicPlaying;
+
+  function syncMusicButtons() {
+    const label = isMusicPlaying ? "Pausar Música" : "Retomar Música";
+    document.querySelectorAll('.music-toggle-btn').forEach(btn => {
+      btn.textContent = label;
+    });
+  }
+
+  function tryStartMusic() {
+    if (!isMusicPlaying) return;
+    getMusicPlayer().play().catch(() => {});
+  }
+
   window.toggleMusic = function() {
-    clickSound.play();
+    const music = getMusicPlayer();
+    clickSound.play().catch(() => {});
     if (isMusicPlaying) {
-      backgroundMusic.pause();
-      document.querySelectorAll('.music-toggle-btn').forEach(btn => btn.textContent = "Retomar Música");
+      music.pause();
       isMusicPlaying = false;
     } else {
-      backgroundMusic.play().catch(() => {});
-      document.querySelectorAll('.music-toggle-btn').forEach(btn => btn.textContent = "Pausar Música");
+      music.play().catch(() => {});
       isMusicPlaying = true;
     }
+    window.isMusicPlaying = isMusicPlaying;
+    syncMusicButtons();
   };
 
-  window.addEventListener('load', () => {
-    backgroundMusic.play().catch(() => {});
-  });
-  document.addEventListener('click', () => {
-    backgroundMusic.play().catch(() => {});
-  }, { once: true });
+  window.addEventListener('load', tryStartMusic, { once: true });
+  document.addEventListener('pointerdown', tryStartMusic, { once: true });
+  syncMusicButtons();
 })();

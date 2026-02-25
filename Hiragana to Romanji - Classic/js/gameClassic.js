@@ -2,6 +2,14 @@
 (function() {
   // Variáveis globais do modo clássico
   let firstCard, secondCard, lockBoard, matchesFound, attempts, totalPairs, startTime, timerInterval;
+  let validPairKeys = new Set();
+  const allowedCardCounts = new Set([8, 16, 20, 30]);
+  const layoutByCardCount = {
+    8: { columns: 4, rows: 2 },
+    16: { columns: 4, rows: 4 },
+    20: { columns: 5, rows: 4 },
+    30: { columns: 6, rows: 5 }
+  };
 
   // Função de embaralhamento
   function shuffle(array) {
@@ -30,6 +38,10 @@
       }
     });
     return validSets;
+  }
+
+  function pairKey(left, right) {
+    return `${left}::${right}`;
   }
 
   // Botões Selecionar todos / Limpar seleção
@@ -62,7 +74,7 @@
     window.clickSound.play();
     document.querySelector('h1').style.display = 'none';
     const checkboxes = document.querySelectorAll(".setCheck:checked");
-    const cardCount = parseInt(document.getElementById("cardCount").value);
+    const cardCount = parseInt(document.getElementById("cardCount").value, 10);
     const errorMessage = document.getElementById("errorMessage");
     const gameBoard = document.getElementById("gameBoard");
     const gameContainer = document.getElementById("gameContainer");
@@ -77,10 +89,18 @@
       errorMessage.textContent = "Selecione pelo menos um conjunto!";
       return;
     }
-    if (cardCount % 2 !== 0 || ![8, 16, 20, 30].includes(cardCount)) {
+    if (!allowedCardCounts.has(cardCount)) {
       errorMessage.textContent = "O número de cartas deve ser 8, 16, 20 ou 30!";
       return;
     }
+
+    errorMessage.textContent = "";
+    document.querySelector('.menu').style.display = 'none';
+    document.querySelector('.game-controls').style.display = 'flex';
+    gameContainer.style.display = 'flex';
+    gameBoard.textContent = 'Carregando...';
+
+    requestAnimationFrame(() => {
     let availablePairs = [];
     const selectedSets = validateSelectedSets(checkboxes);
     selectedSets.forEach(set => {
@@ -88,6 +108,9 @@
     });
     if (availablePairs.length === 0) {
       errorMessage.textContent = "Nenhum conjunto válido selecionado!";
+      document.querySelector('.menu').style.display = 'block';
+      document.querySelector('.game-controls').style.display = 'none';
+      gameContainer.style.display = 'none';
       return;
     }
     const neededPairs = cardCount / 2;
@@ -98,23 +121,9 @@
     }
     // Embaralhamento aprimorado para evitar padrões previsíveis
     selectedPairs = shuffle(selectedPairs);
-    errorMessage.textContent = "";
     const characters = selectedPairs.flat();
     const shuffled = shuffle(characters);
-    let columns, rows;
-    if (cardCount === 8) {
-      columns = 4;
-      rows = 2;
-    } else if (cardCount === 16) {
-      columns = 4;
-      rows = 4;
-    } else if (cardCount === 20) {
-      columns = 5;
-      rows = 4;
-    } else if (cardCount === 30) {
-      columns = 6;
-      rows = 5;
-    }
+    const { columns, rows } = layoutByCardCount[cardCount];
     gameBoard.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
     gameBoard.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
     gameBoard.innerHTML = "";
@@ -130,21 +139,41 @@
     document.getElementById("matches").textContent = "0";
     if (timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(updateTime, 1000);
+
+    validPairKeys = new Set();
+    selectedPairs.forEach(([hiragana, romanji]) => {
+      validPairKeys.add(pairKey(hiragana, romanji));
+      validPairKeys.add(pairKey(romanji, hiragana));
+    });
+
+    const allSetCheckboxes = document.querySelectorAll('.setCheck');
+    const checkedSetNamesArray = Array.from(checkboxes)
+      .map(checkbox => window.setNames?.[checkbox.value] || checkbox.value)
+      .map(name => name.replace(/^Série\s+/i, ''));
+    const checkedSetNames = checkedSetNamesArray.join(', ');
+    const alphabetLabel = window.currentAlphabet === 'katakana' ? 'Katakana' : 'Hiragana';
+
+    let selectedSetsLabel = checkedSetNames;
+    if (checkboxes.length === allSetCheckboxes.length) {
+      selectedSetsLabel = 'Todas as séries';
+    }
+
+    const modeInfoElement = document.getElementById('modeInfo');
+    modeInfoElement.textContent = `${alphabetLabel} - ${cardCount} cartas (${selectedSetsLabel})`;
+    modeInfoElement.title = `${alphabetLabel} - ${cardCount} cartas (${checkedSetNames})`;
+
     // Otimização: criar todas as cartas em um fragmento e inserir de uma vez
     const fragment = document.createDocumentFragment();
     shuffled.forEach(char => {
       const card = document.createElement("div");
       card.classList.add("card");
       card.dataset.char = char;
-      card.innerText = "?";
+      card.textContent = "?";
       card.addEventListener("click", () => flipCard(card));
       fragment.appendChild(card);
     });
     gameBoard.appendChild(fragment);
-    // Não precisa adicionar células vazias no novo layout
-    document.querySelector('.menu').style.display = 'none';
-    document.querySelector('.game-controls').style.display = 'flex';
-    gameContainer.style.display = 'flex';
+    });
   }
 
   function flipCard(card) {
@@ -166,11 +195,7 @@
     const secondChar = secondCard.dataset.char;
     attempts += 1;
     document.getElementById("attempts").textContent = attempts;
-    const pairs = Object.values(window.sets).flat();
-    const isMatch = pairs.some(([hiragana, romanji]) => 
-      (firstChar === hiragana && secondChar === romanji) || 
-      (firstChar === romanji && secondChar === hiragana)
-    );
+    const isMatch = validPairKeys.has(pairKey(firstChar, secondChar));
     if (isMatch) {
       firstCard.classList.add("matched");
       secondCard.classList.add("matched");
@@ -198,8 +223,8 @@
       setTimeout(() => {
         firstCard.classList.remove("flipped");
         secondCard.classList.remove("flipped");
-        firstCard.innerText = "?";
-        secondCard.innerText = "?";
+        firstCard.textContent = "?";
+        secondCard.textContent = "?";
         resetTurn();
       }, 1000);
     }

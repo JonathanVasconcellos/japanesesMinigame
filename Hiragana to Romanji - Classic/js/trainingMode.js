@@ -10,6 +10,7 @@
   const trainingLimit = 30;
   let selectedChars = [];
   let trainingPool = [];
+  let currentSetMap = new Map();
 
   function shuffle(array) {
     for (let i = array.length - 1; i > 0; i--) {
@@ -62,12 +63,16 @@
     inputRomanji.value = "";
     inputRomanji.focus();
     document.querySelector(".confirm-training-btn").disabled = false;
-    document.querySelector(".restart-training-btn").style.display = "none";
-    document.getElementById("errorList").style.display = "none";
+    document.querySelector(".restart-training-btn").classList.add('hidden');
+    document.getElementById("errorList").classList.add('hidden');
     selectedChars = [];
+    currentSetMap = new Map();
     const selectedSets = validateSelectedSets(checkboxes);
     selectedSets.forEach(set => {
-      selectedChars = selectedChars.concat(set.map(([hiragana]) => hiragana));
+      set.forEach(([hiragana, romanji]) => {
+        selectedChars.push(hiragana);
+        currentSetMap.set(hiragana, romanji);
+      });
     });
     if (selectedChars.length === 0) {
       errorMessage.textContent = "Nenhum conjunto válido selecionado!";
@@ -94,9 +99,9 @@
     document.getElementById("trainingRemaining").textContent = trainingLimit;
     document.getElementById("inputRomanji").disabled = false;
     document.querySelector(".confirm-training-btn").disabled = false;
-    document.querySelector(".restart-training-btn").style.display = "none";
+    document.querySelector(".restart-training-btn").classList.add('hidden');
     document.getElementById("feedback").textContent = "";
-    document.getElementById("errorList").style.display = "none";
+    document.getElementById("errorList").classList.add('hidden');
     trainingPool = shuffle(selectedChars.slice());
     nextTrainingChar();
   }
@@ -106,31 +111,21 @@
       document.getElementById("feedback").textContent = "Treino concluído!";
       document.getElementById("inputRomanji").disabled = true;
       document.querySelector(".confirm-training-btn").disabled = true;
-      document.querySelector(".restart-training-btn").style.display = "inline-block";
+      document.querySelector(".restart-training-btn").classList.remove('hidden');
       const errorList = document.getElementById("errorList");
+      errorList.style.display = "";
       errorList.innerHTML = "";
       const errorKeys = Object.keys(errorStats);
       if (errorKeys.length > 0) {
-        errorList.style.display = "block";
+        errorList.classList.remove('hidden');
         errorList.innerHTML = "<h4>Caracteres Errados</h4>";
         errorKeys.forEach(char => {
-          // Busca a resposta correta com tratamento de erro
-          const setKey = Object.keys(window.sets).find(set => 
-            window.sets[set].some(([hiragana]) => hiragana === char)
-          );
-          
-          if (!setKey) {
+          const correctRomanji = currentSetMap.get(char);
+          if (!correctRomanji) {
             console.error(`Caractere não encontrado ao listar erros: ${char}`);
             return;
           }
-          
-          const pair = window.sets[setKey].find(([hiragana]) => hiragana === char);
-          if (!pair) {
-            console.error(`Par não encontrado ao listar erros: ${char}`);
-            return;
-          }
-          
-          const correctRomanji = pair[1];
+
           errorStats[char].forEach(error => {
             const errorItem = document.createElement("p");
             errorItem.textContent = `${error.turn} - ${char} → ${error.input} (correto é ${correctRomanji})`;
@@ -138,7 +133,7 @@
           });
         });
       } else {
-        errorList.style.display = "none";
+        errorList.classList.add('hidden');
       }
       return;
     }
@@ -166,28 +161,16 @@
     clickSound.play();
     const inputElement = document.getElementById("inputRomanji");
     const input = inputElement.value.trim().toLowerCase();
-    
-    // Busca a resposta correta com tratamento de erro
-    const setKey = Object.keys(window.sets).find(set => 
-      window.sets[set].some(([hiragana, romanji]) => hiragana === currentTrainingChar)
-    );
-    
-    if (!setKey) {
+
+    const correctRomanjiRaw = currentSetMap.get(currentTrainingChar);
+    if (!correctRomanjiRaw) {
       console.error(`Caractere não encontrado nos conjuntos: ${currentTrainingChar}`);
       errorSound.play();
       document.getElementById("feedback").textContent = "Erro: caractere inválido!";
       return;
     }
-    
-    const pair = window.sets[setKey].find(([hiragana]) => hiragana === currentTrainingChar);
-    if (!pair) {
-      console.error(`Par não encontrado para: ${currentTrainingChar}`);
-      errorSound.play();
-      document.getElementById("feedback").textContent = "Erro: par inválido!";
-      return;
-    }
-    
-    const correctAnswer = pair[1].toLowerCase();
+
+    const correctAnswer = correctRomanjiRaw.toLowerCase();
     if (input === correctAnswer) {
       matchSound.play();
       document.getElementById("feedback").textContent = "Correto!";
@@ -219,19 +202,20 @@
     document.getElementById("trainingContainer").style.display = 'none';
     document.getElementById("winModal").style.display = 'none';
     document.getElementById("modalOverlay").style.display = 'none';
-    const restartTrainingElement = document.getElementById("restartTraining");
+    const restartTrainingElement = document.querySelector('.restart-training-btn');
     if (restartTrainingElement) {
-      restartTrainingElement.style.display = "none";
+      restartTrainingElement.classList.add('hidden');
     }
     const errorListElement = document.getElementById("errorList");
     if (errorListElement) {
-      errorListElement.style.display = "none";
+      errorListElement.classList.add('hidden');
     }
     trainingHits = 0;
     trainingErrors = 0;
     trainingTotal = 0;
     errorStats = {};
     lastTrainingChar = null;
+    currentSetMap = new Map();
   }
 
   // Delegação de eventos para botões do treino

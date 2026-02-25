@@ -11,16 +11,16 @@
 <body>
   <h1>Jogo da Memória - Hiragana e Imagem</h1>
   <div class="menu">
-    <div class="menu-buttons" style="margin-bottom: 10px;">
+    <div class="menu-buttons menu-section-spacing">
       <div class="menu-row menu-row-top">
         <button class="start-game-btn" type="button">Iniciar Jogo</button>
-        <button onclick="window.location.href='../index.html'">Sair</button>
+        <button id="exitToHomeBtn" type="button">Sair</button>
       </div>
       <div class="menu-row menu-row-bottom">
         <button class="music-toggle-btn" type="button">Pausar Música</button>
       </div>
     </div>
-    <div style="margin-bottom: 10px;">
+    <div class="menu-section-spacing">
       <label for="pairCount">Número de cartas:</label>
       <select id="pairCount">
         <option value="8">8</option>
@@ -29,29 +29,29 @@
         <option value="30">30</option>
       </select>
     </div>
-    <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 15px; justify-content: center; padding: 10px; background: rgba(255, 85, 85, 0.15); border-radius: 8px; flex-wrap: wrap;">
-      <span style="font-weight: bold;">Alfabeto:</span>
-      <label style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
+    <div class="alphabet-selector alphabet-selector-wrap">
+      <span class="alphabet-title">Alfabeto:</span>
+      <label class="alphabet-option">
         <input type="radio" name="alphabet" value="hiragana" checked>
         <span>Hiragana (あ)</span>
       </label>
-      <label style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
+      <label class="alphabet-option">
         <input type="radio" name="alphabet" value="katakana">
         <span>Katakana (ア)</span>
       </label>
-      <label style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
+      <label class="alphabet-option">
         <input type="radio" name="alphabet" value="expert">
         <span>Expert (Misturado 🔥)</span>
       </label>
     </div>
-    <div class="checkbox-container" style="margin-bottom: 10px;">
+    <div class="checkbox-container menu-section-spacing">
       <label><input type="checkbox" class="setCheck" value="Basico" checked> Básico</label>
       <label><input type="checkbox" class="setCheck" value="Intermediario"> Intermediário</label>
       <label><input type="checkbox" class="setCheck" value="Avancado"> Avançado</label>
     </div>
     <div id="errorMessage" class="error" aria-live="polite"></div>
   </div>
-  <div class="game-controls" style="display: none;">
+  <div class="game-controls">
     <button class="return-menu-btn" type="button">Voltar ao Menu</button>
     <button class="music-toggle-btn" type="button">Pausar Música</button>
   </div>
