@@ -1,1 +1,17 @@
 @import url('../shared-game.css');
+/* Estilo específico para Modo Clássico - fonte maior para caracteres únicos */
+.card {
+  font-size: 1.6rem;
+}
+
+@media (max-width: 700px) {
+  .card {
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    font-size: 1.1rem;
+  }
+}

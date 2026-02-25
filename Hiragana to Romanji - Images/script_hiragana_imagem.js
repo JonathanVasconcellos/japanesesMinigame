@@ -1,7 +1,7 @@
-// Jogo da Memória: Hiragana e Imagem
+// Jogo da Memória: Hiragana/Katakana e Imagem
 (function() {
-  // Banco de palavras por dificuldade
-  const words = {
+  // Banco de palavras em Hiragana
+  const wordsHiragana = {
     Basico: [
       { hiragana: "ねこ", image: "imagens/neko.png" },
       { hiragana: "いぬ", image: "imagens/inu.png" },
@@ -27,41 +27,108 @@
       { hiragana: "ほん", image: "imagens/hon.png" }
     ],
     Avancado: [
-  { hiragana: "あかちゃん", romanji: "akachan", image: "imagens/akachan.png" },           // bebê
-  { hiragana: "いけばな", romanji: "ikebana", image: "imagens/ikebana.png" },            // arranjo floral
-  { hiragana: "うみべ", romanji: "umibe", image: "imagens/umibe.png" },                  // praia
-  { hiragana: "えんとつ", romanji: "entotsu", image: "imagens/entotsu.png" },            // chaminé
-  { hiragana: "おにぎり", romanji: "onigiri", image: "imagens/onigiri.png" },            // bolinho de arroz
-  { hiragana: "かぼちゃ", romanji: "kabocha", image: "imagens/kabocha.png" },            // abóbora
-  { hiragana: "きもの", romanji: "kimono", image: "imagens/kimono.png" },                // quimono
-  { hiragana: "くつした", romanji: "kutsushita", image: "imagens/kutsushita.png" },      // meia
-  { hiragana: "けいと", romanji: "keito", image: "imagens/keito.png" },                  // lã
-  { hiragana: "こうえん", romanji: "kouen", image: "imagens/kouen.png" },                // parque
-  { hiragana: "さくら", romanji: "sakura", image: "imagens/sakura.png" },                // cerejeira
-  { hiragana: "しんごう", romanji: "shingou", image: "imagens/shingou.png" },            // semáforo
-  { hiragana: "すいか", romanji: "suika", image: "imagens/suika.png" },                  // melancia
-  { hiragana: "せんぷうき", romanji: "senpuuki", image: "imagens/senpuuki.png" },        // ventilador
-  { hiragana: "そで", romanji: "sode", image: "imagens/sode.png" },                      // manga (de roupa)
-  { hiragana: "たいや", romanji: "taiya", image: "imagens/taiya.png" },                  // pneu
-  { hiragana: "つきよ", romanji: "tsukiyo", image: "imagens/tsukiyo.png" },              // noite de lua
-  { hiragana: "てぶくろ", romanji: "tebukuro", image: "imagens/tebukuro.png" },          // luva
-  { hiragana: "とんぼ", romanji: "tonbo", image: "imagens/tonbo.png" },                  // libélula
-  { hiragana: "なわとび", romanji: "nawatobi", image: "imagens/nawatobi.png" },          // corda de pular
-  { hiragana: "にわとり", romanji: "niwatori", image: "imagens/niwatori.png" },          // galinha
-  { hiragana: "ねっと", romanji: "netto", image: "imagens/netto.png" },                  // rede (ex.: rede de pesca)
-  { hiragana: "はしご", romanji: "hashigo", image: "imagens/hashigo.png" },              // escada
-  { hiragana: "ひまわり", romanji: "himawari", image: "imagens/himawari.png" },          // girassol
-  { hiragana: "ふうせん", romanji: "fuusen", image: "imagens/fuusen.png" },              // balão
-  { hiragana: "へや", romanji: "heya", image: "imagens/heya.png" },                      // quarto
-  { hiragana: "ほたる", romanji: "hotaru", image: "imagens/hotaru.png" },                // vagalume
-  { hiragana: "まくら", romanji: "makura", image: "imagens/makura.png" },                // travesseiro
-  { hiragana: "みずうみ", romanji: "mizuumi", image: "imagens/mizuumi.png" },            // lago
-  { hiragana: "むすび", romanji: "musubi", image: "imagens/musubi.png" },                // nó
-  { hiragana: "やかん", romanji: "yakan", image: "imagens/yakan.png" },                  // chaleira
-  { hiragana: "ゆうびん", romanji: "yuubin", image: "imagens/yuubin.png" },              // correio
-  { hiragana: "よっと", romanji: "yotto", image: "imagens/yotto.png" }                 // iate
-  ]
+      { hiragana: "あかちゃん", romanji: "akachan", image: "imagens/akachan.png" },
+      { hiragana: "いけばな", romanji: "ikebana", image: "imagens/ikebana.png" },
+      { hiragana: "うみべ", romanji: "umibe", image: "imagens/umibe.png" },
+      { hiragana: "えんとつ", romanji: "entotsu", image: "imagens/entotsu.png" },
+      { hiragana: "おにぎり", romanji: "onigiri", image: "imagens/onigiri.png" },
+      { hiragana: "かぼちゃ", romanji: "kabocha", image: "imagens/kabocha.png" },
+      { hiragana: "きもの", romanji: "kimono", image: "imagens/kimono.png" },
+      { hiragana: "くつした", romanji: "kutsushita", image: "imagens/kutsushita.png" },
+      { hiragana: "けいと", romanji: "keito", image: "imagens/keito.png" },
+      { hiragana: "こうえん", romanji: "kouen", image: "imagens/kouen.png" },
+      { hiragana: "さくら", romanji: "sakura", image: "imagens/sakura.png" },
+      { hiragana: "しんごう", romanji: "shingou", image: "imagens/shingou.png" },
+      { hiragana: "すいか", romanji: "suika", image: "imagens/suika.png" },
+      { hiragana: "せんぷうき", romanji: "senpuuki", image: "imagens/senpuuki.png" },
+      { hiragana: "そで", romanji: "sode", image: "imagens/sode.png" },
+      { hiragana: "たいや", romanji: "taiya", image: "imagens/taiya.png" },
+      { hiragana: "つきよ", romanji: "tsukiyo", image: "imagens/tsukiyo.png" },
+      { hiragana: "てぶくろ", romanji: "tebukuro", image: "imagens/tebukuro.png" },
+      { hiragana: "とんぼ", romanji: "tonbo", image: "imagens/tonbo.png" },
+      { hiragana: "なわとび", romanji: "nawatobi", image: "imagens/nawatobi.png" },
+      { hiragana: "にわとり", romanji: "niwatori", image: "imagens/niwatori.png" },
+      { hiragana: "ねっと", romanji: "netto", image: "imagens/netto.png" },
+      { hiragana: "はしご", romanji: "hashigo", image: "imagens/hashigo.png" },
+      { hiragana: "ひまわり", romanji: "himawari", image: "imagens/himawari.png" },
+      { hiragana: "ふうせん", romanji: "fuusen", image: "imagens/fuusen.png" },
+      { hiragana: "へや", romanji: "heya", image: "imagens/heya.png" },
+      { hiragana: "ほたる", romanji: "hotaru", image: "imagens/hotaru.png" },
+      { hiragana: "まくら", romanji: "makura", image: "imagens/makura.png" },
+      { hiragana: "みずうみ", romanji: "mizuumi", image: "imagens/mizuumi.png" },
+      { hiragana: "むすび", romanji: "musubi", image: "imagens/musubi.png" },
+      { hiragana: "やかん", romanji: "yakan", image: "imagens/yakan.png" },
+      { hiragana: "ゆうびん", romanji: "yuubin", image: "imagens/yuubin.png" },
+      { hiragana: "よっと", romanji: "yotto", image: "imagens/yotto.png" }
+    ]
   };
+
+  // Banco de palavras em Katakana
+  const wordsKatakana = {
+    Basico: [
+      { hiragana: "ネコ", image: "imagens/neko.png" },
+      { hiragana: "イヌ", image: "imagens/inu.png" },
+      { hiragana: "クマ", image: "imagens/kuma.png" },
+      { hiragana: "トリ", image: "imagens/tori.png" },
+      { hiragana: "ウミ", image: "imagens/umi.png" },
+      { hiragana: "ヤマ", image: "imagens/yama.png" },
+      { hiragana: "ソラ", image: "imagens/sora.png" },
+      { hiragana: "ハナ", image: "imagens/hana.png" },
+      { hiragana: "ツキ", image: "imagens/tsuki.png" },
+      { hiragana: "ヒ", image: "imagens/hi.png" }
+    ],
+    Intermediario: [
+      { hiragana: "サカナ", image: "imagens/sakana.png" },
+      { hiragana: "リンゴ", image: "imagens/ringo.png" },
+      { hiragana: "ミカン", image: "imagens/mikan.png" },
+      { hiragana: "ウサギ", image: "imagens/usagi.png" },
+      { hiragana: "デンシャ", image: "imagens/densha.png" },
+      { hiragana: "クルマ", image: "imagens/kuruma.png" },
+      { hiragana: "タマゴ", image: "imagens/tamago.png" },
+      { hiragana: "ミズ", image: "imagens/mizu.png" },
+      { hiragana: "オチャ", image: "imagens/ocha.png" },
+      { hiragana: "ホン", image: "imagens/hon.png" }
+    ],
+    Avancado: [
+      { hiragana: "アカチャン", romanji: "akachan", image: "imagens/akachan.png" },
+      { hiragana: "イケバナ", romanji: "ikebana", image: "imagens/ikebana.png" },
+      { hiragana: "ウミベ", romanji: "umibe", image: "imagens/umibe.png" },
+      { hiragana: "エントツ", romanji: "entotsu", image: "imagens/entotsu.png" },
+      { hiragana: "オニギリ", romanji: "onigiri", image: "imagens/onigiri.png" },
+      { hiragana: "カボチャ", romanji: "kabocha", image: "imagens/kabocha.png" },
+      { hiragana: "キモノ", romanji: "kimono", image: "imagens/kimono.png" },
+      { hiragana: "クツシタ", romanji: "kutsushita", image: "imagens/kutsushita.png" },
+      { hiragana: "ケイト", romanji: "keito", image: "imagens/keito.png" },
+      { hiragana: "コウエン", romanji: "kouen", image: "imagens/kouen.png" },
+      { hiragana: "サクラ", romanji: "sakura", image: "imagens/sakura.png" },
+      { hiragana: "シンゴウ", romanji: "shingou", image: "imagens/shingou.png" },
+      { hiragana: "スイカ", romanji: "suika", image: "imagens/suika.png" },
+      { hiragana: "センプウキ", romanji: "senpuuki", image: "imagens/senpuuki.png" },
+      { hiragana: "ソデ", romanji: "sode", image: "imagens/sode.png" },
+      { hiragana: "タイヤ", romanji: "taiya", image: "imagens/taiya.png" },
+      { hiragana: "ツキヨ", romanji: "tsukiyo", image: "imagens/tsukiyo.png" },
+      { hiragana: "テブクロ", romanji: "tebukuro", image: "imagens/tebukuro.png" },
+      { hiragana: "トンボ", romanji: "tonbo", image: "imagens/tonbo.png" },
+      { hiragana: "ナワトビ", romanji: "nawatobi", image: "imagens/nawatobi.png" },
+      { hiragana: "ニワトリ", romanji: "niwatori", image: "imagens/niwatori.png" },
+      { hiragana: "ネット", romanji: "netto", image: "imagens/netto.png" },
+      { hiragana: "ハシゴ", romanji: "hashigo", image: "imagens/hashigo.png" },
+      { hiragana: "ヒマワリ", romanji: "himawari", image: "imagens/himawari.png" },
+      { hiragana: "フウセン", romanji: "fuusen", image: "imagens/fuusen.png" },
+      { hiragana: "ヘヤ", romanji: "heya", image: "imagens/heya.png" },
+      { hiragana: "ホタル", romanji: "hotaru", image: "imagens/hotaru.png" },
+      { hiragana: "マクラ", romanji: "makura", image: "imagens/makura.png" },
+      { hiragana: "ミズウミ", romanji: "mizuumi", image: "imagens/mizuumi.png" },
+      { hiragana: "ムスビ", romanji: "musubi", image: "imagens/musubi.png" },
+      { hiragana: "ヤカン", romanji: "yakan", image: "imagens/yakan.png" },
+      { hiragana: "ユウビン", romanji: "yuubin", image: "imagens/yuubin.png" },
+      { hiragana: "ヨット", romanji: "yotto", image: "imagens/yotto.png" }
+    ]
+  };
+
+  // Variável para armazenar o alfabeto atual
+  let currentAlphabet = 'hiragana';
+  let words = wordsHiragana;
 
   // Sons
   const flipSound = new Audio("audios/flip.mp3");
@@ -102,14 +169,28 @@
 
   // Função para iniciar o jogo
   window.startGame = function() {
-    // Obter dificuldade e quantidade de pares
-    const checked = document.querySelector('.setCheck:checked');
-    let difficulty = checked ? checked.value : 'Basico';
+    // Obter alfabeto selecionado
+    const alphabetRadio = document.querySelector('input[name="alphabet"]:checked');
+    currentAlphabet = alphabetRadio ? alphabetRadio.value : 'hiragana';
+    
+    // Definir conjunto de palavras conforme o alfabeto
+    let availableWords = [];
+    
+    if (currentAlphabet === 'expert') {
+      // Modo Expert: mistura TODAS as palavras de ambos os alfabetos
+      const allHiragana = [...wordsHiragana.Basico, ...wordsHiragana.Intermediario, ...wordsHiragana.Avancado];
+      const allKatakana = [...wordsKatakana.Basico, ...wordsKatakana.Intermediario, ...wordsKatakana.Avancado];
+      availableWords = [...allHiragana, ...allKatakana];
+    } else {
+      // Modo Hiragana ou Katakana: usa a dificuldade selecionada
+      const checked = document.querySelector('.setCheck:checked');
+      let difficulty = checked ? checked.value : 'Basico';
+      words = currentAlphabet === 'hiragana' ? wordsHiragana : wordsKatakana;
+      availableWords = [...words[difficulty]];
+    }
+    
     const pairCount = parseInt(document.getElementById('pairCount').value, 10);
     let maxPairs = pairCount / 2;
-    
-    // Pegar todas as palavras disponíveis
-    const availableWords = [...words[difficulty]];
     let selectedWords = [];
     
     // Se precisar de mais pares do que há disponível, repetir de forma aleatória
@@ -136,13 +217,13 @@
     // Criar cartas: cada par = 1 carta hiragana + 1 carta imagem
     let cards = [];
     selectedWords.forEach(word => {
-      // Define tamanho da fonte conforme número de caracteres
-      let fontSize = '1.3em';
-      if (word.hiragana.length === 1) fontSize = '2.0em';
-      else if (word.hiragana.length === 2) fontSize = '1.6em';
-      else if (word.hiragana.length === 3) fontSize = '1.2em';
-      else if (word.hiragana.length === 4) fontSize = '0.95em';
-      else if (word.hiragana.length >= 5) fontSize = '0.75em';
+      // Define tamanho da fonte conforme número de caracteres (ajustado para cards 52x52)
+      let fontSize = '0.9em';
+      if (word.hiragana.length === 1) fontSize = '1.3em';
+      else if (word.hiragana.length === 2) fontSize = '1.0em';
+      else if (word.hiragana.length === 3) fontSize = '0.8em';
+      else if (word.hiragana.length === 4) fontSize = '0.65em';
+      else if (word.hiragana.length >= 5) fontSize = '0.5em';
       // Adiciona carta hiragana com estilo inline
       cards.push({ type: 'hiragana', value: word.hiragana, pairId: word.hiragana, fontSize });
       cards.push({ type: 'imagem', value: `<img src='${word.image}' alt='${word.hiragana}' class='img-card'>`, pairId: word.hiragana });
@@ -186,12 +267,23 @@
     document.getElementById('attempts').textContent = '0';
     document.getElementById('matches').textContent = '0';
     document.getElementById('timeElapsed').textContent = '0 min 0 seg';
-    const modeLabels = {
-      Basico: 'Básico',
-      Intermediario: 'Intermediário',
-      Avancado: 'Avançado'
-    };
-    document.getElementById('modeInfo').textContent = modeLabels[difficulty] || 'Básico';
+    
+    // Exibir modo conforme o alfabeto
+    let modeDisplay = '';
+    if (currentAlphabet === 'expert') {
+      modeDisplay = 'Expert (Misturado 🔥)';
+    } else {
+      const modeLabels = {
+        Basico: 'Básico',
+        Intermediario: 'Intermediário',
+        Avancado: 'Avançado'
+      };
+      const alphabetLabel = currentAlphabet === 'hiragana' ? 'Hiragana' : 'Katakana';
+      const checked = document.querySelector('.setCheck:checked');
+      const difficulty = checked ? checked.value : 'Basico';
+      modeDisplay = `${alphabetLabel} - ${modeLabels[difficulty] || 'Básico'}`;
+    }
+    document.getElementById('modeInfo').textContent = modeDisplay;
 
     // Timer
     if (timerInterval) clearInterval(timerInterval);
@@ -228,17 +320,37 @@
     };
   });
 
+  // Listener para alternar alfabeto e desabilitar dificuldade no modo Expert
+  const alphabetRadios = document.querySelectorAll('input[name="alphabet"]');
+  alphabetRadios.forEach(radio => {
+    radio.addEventListener('change', function() {
+      const isExpertMode = this.value === 'expert';
+      checkboxes.forEach(cb => {
+        cb.disabled = isExpertMode;
+        cb.parentElement.style.opacity = isExpertMode ? '0.5' : '1';
+        cb.parentElement.style.cursor = isExpertMode ? 'not-allowed' : 'pointer';
+      });
+    });
+  });
+
   // Seleciona o modo básico por padrão ao abrir o menu
   const basicoCheckbox = document.querySelector('.setCheck[value="Basico"]');
   if (basicoCheckbox) basicoCheckbox.checked = true;
 
-  // Torna obrigatório selecionar uma dificuldade antes de iniciar o jogo
+  // Torna obrigatório selecionar uma dificuldade antes de iniciar o jogo (exceto no modo Expert)
   document.querySelector('.start-game-btn').onclick = function() {
-    const checked = document.querySelector('.setCheck:checked');
-    if (!checked) {
-      alert('Selecione um modo de dificuldade antes de iniciar o jogo!');
-      return;
+    const alphabetRadio = document.querySelector('input[name="alphabet"]:checked');
+    const isExpertMode = alphabetRadio && alphabetRadio.value === 'expert';
+    
+    // No modo Expert, não precisa de dificuldade selecionada
+    if (!isExpertMode) {
+      const checked = document.querySelector('.setCheck:checked');
+      if (!checked) {
+        alert('Selecione um modo de dificuldade antes de iniciar o jogo!');
+        return;
+      }
     }
+    
     // Pré-carrega imagens e só inicia o jogo após todas carregarem
     preloadImages().then(() => {
       document.querySelector('h1').style.display = 'none';
