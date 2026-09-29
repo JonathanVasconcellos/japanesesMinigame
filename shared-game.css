@@ -340,6 +340,21 @@ input[type="text"] {
   z-index: 999;
 }
 
+#sessionStatsContent {
+  max-height: 55vh;
+  overflow-y: auto;
+  margin: 12px 0;
+  text-align: left;
+}
+
+.session-stats-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid #555;
+}
+
 .training-container {
   display: none;
   flex-direction: column;

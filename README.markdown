@@ -53,7 +53,9 @@ japanesesMinigame/
 - Quantidade de cartas: `8`, `16`, `20`, `30`.
 - Estatísticas de partida: tempo, tentativas, acertos.
 - Modo treino com até 30 rodadas.
-- Exibição de erros no treino ao final (caractere, resposta digitada e resposta correta).
+- Após um erro, mostra a resposta correta antes de avançar e guarda o caractere para revisão no próximo treino.
+- Botão de estatísticas disponível apenas no modo treino; resultados acumulados por aba não são apagados ao reiniciar.
+- Exibição dos erros da rodada ao final (caractere, resposta digitada e resposta correta).
 
 ### Modo com Imagens
 

@@ -97,10 +97,11 @@
       </div>
       <div class="training-nav-buttons">
         <button class="return-menu-btn" type="button">Voltar ao Menu</button>
+        <button class="session-stats-btn" type="button">Estatísticas da sessão</button>
         <button class="music-toggle-btn" type="button">Pausar Música</button>
       </div>
     </div>
-    <div class="feedback" id="feedback"></div>
+    <div class="feedback" id="feedback" aria-live="polite"></div>
     <div class="error-list hidden" id="errorList"></div>
   </div>
   <div class="modal-overlay" id="modalOverlay"></div>
@@ -108,6 +109,12 @@
     <h2>Parabéns!</h2>
     <p id="winMessage"></p>
     <button class="start-game-btn" type="button">Jogar Novamente</button>
+  </div>
+  <div class="modal" id="sessionStatsModal" role="dialog" aria-modal="true" aria-labelledby="sessionStatsTitle">
+    <h2 id="sessionStatsTitle">Estatísticas da sessão</h2>
+    <p>Os dados permanecem nesta aba ao reiniciar o treino ou voltar ao menu.</p>
+    <div id="sessionStatsContent" aria-live="polite"></div>
+    <button id="closeSessionStatsBtn" type="button">Fechar</button>
   </div>
   <script src="../music.js"></script>
   <script src="js/sets.js"></script>
