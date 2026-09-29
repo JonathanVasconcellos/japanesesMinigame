@@ -144,55 +144,6 @@
     30: { columns: 6, rows: 5 }
   };
 
-  function getMusicPlayer() {
-    if (!window.globalAudio) {
-      const audio = new Audio("audios/background.mp3");
-      audio.loop = true;
-      audio.volume = 0.3;
-      window.globalAudio = audio;
-    }
-    return window.globalAudio;
-  }
-
-  function syncMusicButtons() {
-    const audio = window.globalAudio;
-    const isPlaying = !!audio && !audio.paused;
-    const label = isPlaying ? "Pausar Música" : "Retomar Música";
-    document.querySelectorAll('.music-toggle-btn').forEach(btn => {
-      btn.textContent = label;
-    });
-  }
-
-  function tryStartMusic() {
-    const audio = getMusicPlayer();
-    if (audio.paused) {
-      audio.play().then(syncMusicButtons).catch(syncMusicButtons);
-      return;
-    }
-    syncMusicButtons();
-  }
-
-  window.toggleMusic = function() {
-    const audio = getMusicPlayer();
-    clickSound.play().catch(() => {});
-    if (audio.paused) {
-      audio.play().catch(() => {});
-    } else {
-      audio.pause();
-    }
-    syncMusicButtons();
-  };
-
-  document.addEventListener('click', function(e) {
-    const toggleBtn = e.target.closest('.music-toggle-btn');
-    if (!toggleBtn) return;
-    window.toggleMusic();
-  });
-
-  window.addEventListener('load', tryStartMusic, { once: true });
-  document.addEventListener('pointerdown', tryStartMusic, { once: true });
-  document.addEventListener('DOMContentLoaded', syncMusicButtons);
-
   // Função para embaralhar array
   function shuffle(array) {
     for (let i = array.length - 1; i > 0; i--) {
@@ -534,6 +485,8 @@
   }
 
   window.returnToMenu = function() {
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = null;
     document.querySelector('h1').style.display = 'block';
     document.getElementById('gameContainer').style.display = 'none';
     document.querySelector('.menu').style.display = 'block';

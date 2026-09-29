@@ -19,27 +19,22 @@ Ambos compartilham o mesmo visual, música/efeitos e layout responsivo.
 ```text
 japanesesMinigame/
 ├── index.html
-├── music.js
+├── music.js                         # música compartilhada entre páginas
 ├── shared-game.css
 ├── README.markdown
 ├── Hiragana to Romanji - Classic/
 │   ├── jogo_memoria_hiragana_completo.html
 │   ├── style.css
-│   ├── script.js
-│   ├── music-fade.js
 │   ├── js/
 │   │   ├── audioUtils.js
 │   │   ├── gameClassic.js
-│   │   ├── main.js
 │   │   ├── sets.js
 │   │   ├── trainingMode.js
-│   │   └── uiUtils.js
 │   └── Sound/
 └── Hiragana to Romanji - Images/
     ├── jogo_memoria_hiragana_imagem.html
     ├── style.css
     ├── script_hiragana_imagem.js
-    ├── music-fade.js
     ├── audios/
     └── imagens/
 ```
@@ -69,7 +64,7 @@ japanesesMinigame/
 
 ## Melhorias recentes
 
-- **Áudio global unificado** entre telas (menu e modos), com botão de música sincronizado.
+- **Controle único de música** entre menu e modos, preservando reprodução, pausa e posição ao navegar.
 - **Botão de música mais discreto** e ainda reconhecível.
 - **Início mais rápido de partida**:
     - Modo Clássico: transição imediata de UI e montagem no frame seguinte.
@@ -78,6 +73,7 @@ japanesesMinigame/
     - mostra `Todas as séries` quando todas estão marcadas;
     - remove repetição do prefixo `Série` na listagem.
 - **Correção do treino (Clássico)** para garantir exibição da lista de erros ao concluir.
+- Cronômetros encerrados ao sair da partida e exibidos sem ultrapassar 59 segundos.
 
 ## Mobile-first
 

@@ -21,11 +21,16 @@
   }
 
   function updateTime() {
-    const elapsed = (Date.now() - startTime) / 1000;
-    const minutes = Math.floor(elapsed / 60);
-    const seconds = Math.round(elapsed % 60);
+    const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
+    const minutes = Math.floor(elapsedSeconds / 60);
+    const seconds = elapsedSeconds % 60;
     document.getElementById("timeElapsed").textContent = `${minutes} min ${seconds} seg`;
   }
+
+  window.stopClassicTimer = function() {
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = null;
+  };
 
   function validateSelectedSets(checkboxes) {
     const validSets = [];
@@ -206,8 +211,9 @@
       if (matchesFound === totalPairs) {
         const endTime = Date.now();
         const timeTaken = (endTime - startTime) / 1000;
-        const minutes = Math.floor(timeTaken / 60);
-        const seconds = Math.round(timeTaken % 60);
+        const elapsedSeconds = Math.round(timeTaken);
+        const minutes = Math.floor(elapsedSeconds / 60);
+        const seconds = elapsedSeconds % 60;
         const cardCount = totalPairs * 2;
         const winModal = document.getElementById("winModal");
         const modalOverlay = document.getElementById("modalOverlay");
@@ -216,7 +222,7 @@
         winModal.style.display = "block";
         modalOverlay.style.display = "block";
         winSound.play();
-        if (timerInterval) clearInterval(timerInterval);
+        window.stopClassicTimer();
       }
     } else {
       errorSound.play();

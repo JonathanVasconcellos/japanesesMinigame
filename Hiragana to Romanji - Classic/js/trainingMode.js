@@ -35,6 +35,7 @@
 
   function startTraining() {
     window.clickSound.play();
+    window.stopClassicTimer?.();
     const checkboxes = document.querySelectorAll(".setCheck:checked");
     const errorMessage = document.getElementById("errorMessage");
     const gameContainer = document.getElementById("gameContainer");
@@ -195,6 +196,7 @@
 
   function returnToMenu() {
     clickSound.play();
+    window.stopClassicTimer?.();
     document.querySelector('h1').style.display = 'block';
     document.querySelector('.menu').style.display = 'block';
     document.querySelector('.game-controls').style.display = 'none';
