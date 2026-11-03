@@ -16,40 +16,51 @@
 
   const toSymbols = entries => entries.map(([kana, katakana, romaji]) => ({ kana, katakana, romaji }));
   const flatten = (...groups) => groups.flatMap(group => group);
-  const enemyPoses = enemy => Object.fromEntries(
-    ['idle', 'attack', 'hit', 'stunned'].map(pose => [pose, `assets/${enemy}-${pose}.webp`])
-  );
+  const enemyProfile = (id, name, emoji) => ({
+    id,
+    name,
+    emoji,
+    sprite: `assets/${id}-idle.webp`,
+    poses: {
+      normal: `assets/${id}-idle.webp`,
+      attack: `assets/${id}-attack.webp`,
+      damage: `assets/${id}-hit.webp`,
+      defeated: `assets/${id}-stunned.webp`
+    }
+  });
+  const commonEnemies = {
+    frog: enemyProfile('frog', 'Sapo da Floresta', '🐸'),
+    fox: enemyProfile('fox', 'Raposa da Trilha', '🦊'),
+    monkey: enemyProfile('monkey', 'Macaco da Montanha', '🐒')
+  };
+  const bossEnemy = enemyProfile('dragon', 'Dragão Guardião', '🐉');
   const stageDefinitions = [
-    { id: 'first-coast-battle', number: 1, name: 'Família das vogais', families: ['vowels'], health: 5, enemy: 'frog' },
-    { id: 'hiragana-k', number: 2, name: 'Família K', families: ['k'], enemy: 'frog' },
-    { id: 'hiragana-s', number: 3, name: 'Família S', families: ['s'], enemy: 'frog' },
+    { id: 'first-coast-battle', number: 1, name: 'Família das vogais', families: ['vowels'], health: 5 },
+    { id: 'hiragana-k', number: 2, name: 'Família K', families: ['k'] },
+    { id: 'hiragana-s', number: 3, name: 'Família S', families: ['s'] },
     { id: 'hiragana-boss-1', number: 4, name: 'Guardião do primeiro bloco', families: ['vowels', 'k', 's'], boss: true },
-    { id: 'hiragana-t', number: 5, name: 'Família T', families: ['t'], enemy: 'fox' },
-    { id: 'hiragana-h', number: 6, name: 'Família H', families: ['h'], enemy: 'fox' },
-    { id: 'hiragana-n', number: 7, name: 'Família N', families: ['n'], enemy: 'fox' },
+    { id: 'hiragana-t', number: 5, name: 'Família T', families: ['t'] },
+    { id: 'hiragana-h', number: 6, name: 'Família H', families: ['h'] },
+    { id: 'hiragana-n', number: 7, name: 'Família N', families: ['n'] },
     { id: 'hiragana-boss-2', number: 8, name: 'Guardião do segundo bloco', families: ['t', 'h', 'n'], boss: true },
-    { id: 'hiragana-m', number: 9, name: 'Família M', families: ['m'], enemy: 'monkey' },
-    { id: 'hiragana-ywn', number: 10, name: 'Família Y, W e ん', families: ['ywn'], enemy: 'monkey' },
-    { id: 'hiragana-r', number: 11, name: 'Família R', families: ['r'], enemy: 'monkey' },
+    { id: 'hiragana-m', number: 9, name: 'Família M', families: ['m'] },
+    { id: 'hiragana-ywn', number: 10, name: 'Família Y, W e ん', families: ['ywn'] },
+    { id: 'hiragana-r', number: 11, name: 'Família R', families: ['r'] },
     { id: 'hiragana-boss-3', number: 12, name: 'Guardião final do Hiragana', families: ['m', 'ywn', 'r'], boss: true },
-    { id: 'hiragana-secret', number: 13, name: 'Desafio secreto: todos os kana', families: Object.keys(families), enemy: 'monkey', secret: true }
+    { id: 'hiragana-secret', number: 13, name: 'Desafio secreto: todos os kana', families: Object.keys(families), secret: true }
   ];
-
-  const enemyNames = { frog: 'Sapo da Floresta', fox: 'Raposa da Trilha', monkey: 'Macaco da Montanha' };
 
   const stages = Object.fromEntries(stageDefinitions.map(definition => {
     const isBoss = Boolean(definition.boss);
-    const poses = enemyPoses(isBoss ? 'dragon' : definition.enemy);
     const selectedFamilies = definition.families.map(key => families[key]);
+    const enemies = isBoss ? { dragon: bossEnemy } : commonEnemies;
     return [definition.id, {
       id: definition.id,
       islandId: 'hiragana',
       number: definition.number,
       name: definition.name,
-      enemyName: isBoss ? 'Dragão Guardião' : enemyNames[definition.enemy],
-      enemyEmoji: isBoss ? '🐉' : definition.enemy === 'frog' ? '🐸' : definition.enemy === 'fox' ? '🦊' : '🐒',
-      enemySprite: poses.idle,
-      enemyPoses: poses,
+      enemyTypes: Object.keys(enemies),
+      enemies,
       isBoss,
       isSecret: Boolean(definition.secret),
       symbols: toSymbols(flatten(...selectedFamilies)),

@@ -1,6 +1,7 @@
 (function() {
   const content = window.ADVENTURE_CONTENT;
   let stage = content.stages['first-coast-battle'];
+  let currentEnemy = null;
   const hiraganaIsland = content.islands.find(island => island.id === stage.islandId);
   const regularStageIds = content.regularStageIds;
   const starStorageKey = `kana-quest-progress-v${content.version}`;
@@ -73,8 +74,8 @@
   }
 
   function setEnemyPose(pose) {
-    const source = stage.enemyPoses?.[pose] || stage.enemySprite;
-    ui.enemyActor.classList.toggle('boss-stunned', Boolean(stage.isBoss && pose === 'stunned'));
+    const source = currentEnemy?.poses?.[pose] || currentEnemy?.sprite;
+    ui.enemyActor.classList.toggle('boss-stunned', Boolean(stage.isBoss && pose === 'defeated'));
     if (source && !ui.enemySprite.getAttribute('src').endsWith(source)) {
       ui.enemySprite.src = source;
     }
@@ -264,6 +265,8 @@
   function beginStage(stageId = stage.id) {
     stage = content.stages[stageId];
     if (!stage) return;
+    const selectedEnemy = stage.enemyTypes[Math.floor(Math.random() * stage.enemyTypes.length)];
+    currentEnemy = stage.enemies[selectedEnemy];
     ensureAudio();
     lives = stage.initialLives;
     displayedLives = stage.initialLives;
@@ -276,11 +279,11 @@
     lastWrongAnswer = false;
     inputAnimating = false;
     showScreen('battle');
-    ui.enemySprite.src = stage.enemySprite;
-    ui.enemySprite.alt = stage.enemyName;
-    ui.enemyActor.setAttribute('aria-label', stage.enemyName);
+    ui.enemySprite.src = currentEnemy.sprite;
+    ui.enemySprite.alt = currentEnemy.name;
+    ui.enemyActor.setAttribute('aria-label', currentEnemy.name);
     ui.enemyActor.classList.toggle('boss', stage.isBoss);
-    setEnemyPose('idle');
+    setEnemyPose('normal');
     document.getElementById('roundLabel').textContent = stage.isSecret ? 'DESAFIO SECRETO' : `FASE ${stage.number}`;
     document.getElementById('selectionPrompt').textContent = stage.cardMode === 'romaji'
       ? 'Qual é o romaji do kana destacado?'
@@ -366,7 +369,7 @@
     inputAnimating = false;
     ui.arena.classList.remove('player-damage', 'enemy-impact');
     animateActor(ui.enemyActor, 'attack-windup');
-    setEnemyPose('attack');
+    setEnemyPose('normal');
     ui.playerActor.classList.remove('damaged', 'counter-attack', 'blocking', 'cut');
     setPlayerPose('idle');
     stepIndex = 0;
@@ -381,7 +384,7 @@
     ui.targetSequence.replaceChildren();
     ui.enemyAction.textContent = completedSequenceStreak >= 4
       ? `Combo x${completedSequenceStreak}! Próxima sequência causa 2 de dano.`
-      : `${stage.enemyName} prepara o ataque!`;
+      : `${currentEnemy.name} prepara o ataque!`;
     ui.feedback.textContent = stage.cardMode === 'romaji'
       ? 'Toque nos romaji que correspondem aos kana, na ordem.'
       : 'Memorize o ataque em romaji e toque nos kana correspondentes.';
@@ -542,9 +545,9 @@
     completedSequenceStreak++;
     const damage = completedSequenceStreak >= 5 ? 2 : stage.damagePerCompletedSequence;
     enemyHealth = Math.max(0, enemyHealth - damage);
-    setEnemyPose(enemyHealth <= 0 ? 'stunned' : 'hit');
+    setEnemyPose(enemyHealth <= 0 ? 'defeated' : 'damage');
     ui.enemyAction.textContent = damage === 2 ? 'Combo! Dano dobrado!' : 'Selo rebatido!';
-    ui.feedback.textContent = `Última batida! ${stage.enemyName} recebeu ${damage} de dano.`;
+    ui.feedback.textContent = `Última batida! ${currentEnemy.name} recebeu ${damage} de dano.`;
     ui.feedback.className = 'battle-feedback good';
     animateActor(ui.enemyActor, 'recoil');
     setPlayerPose('complete');
@@ -585,7 +588,7 @@
       ui.resultEyebrow.textContent = perfectRun ? 'VITÓRIA PERFEITA' : 'FASE CONCLUÍDA';
       ui.resultTitle.textContent = perfectRun ? 'Perfeito!' : 'Você venceu!';
       ui.resultMessage.textContent = !perfectRun
-        ? `${stage.enemyName} foi derrotado. Tente novamente sem perder vida para conquistar a estrela.`
+        ? `${currentEnemy.name} foi derrotado. Tente novamente sem perder vida para conquistar a estrela.`
         : earnedStar
           ? 'Você aparou todos os ataques sem perder vida. A estrela é sua!'
           : 'Você repetiu a fase perfeitamente. A estrela desta fase já foi conquistada.';
