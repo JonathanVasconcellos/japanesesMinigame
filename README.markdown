@@ -4,6 +4,7 @@ Projeto web com dois minigames para treinar hiragana, com foco em uso mobile:
 
 - **Modo Clássico**: memória (hiragana ↔ romaji) + modo treino.
 - **Modo com Imagens**: memória (hiragana ↔ imagem).
+- **Aventura**: protótipo mobile de combate por sequências de kana.
 
 Ambos compartilham o mesmo visual, música/efeitos e layout responsivo.
 
@@ -22,6 +23,11 @@ japanesesMinigame/
 ├── music.js                         # música compartilhada entre páginas
 ├── shared-game.css
 ├── README.markdown
+├── Adventure/
+│   ├── adventure.html
+│   ├── adventure.css
+│   ├── adventure.js
+│   └── adventure-data.js
 ├── Hiragana to Romanji - Classic/
 │   ├── jogo_memoria_hiragana_completo.html
 │   ├── style.css
@@ -47,6 +53,17 @@ japanesesMinigame/
 
 ## Funcionalidades
 
+### Aventura (protótipo)
+
+- Ilha Hiragana ativa; ilhas Katakana e Misturada aparecem como futuras áreas.
+- Mapa da ilha com trilha sinuosa, fases numeradas e marcação da estrela perfeita; a primeira fase está aberta e as seguintes aparecem bloqueadas.
+- Primeira fase com sequências aleatórias de vogais, em comprimentos configuráveis de 3 a 5 etapas.
+- Três opções touch-first são renovadas após cada acerto; fases podem usar romaji, hiragana, katakana ou cartas misturadas.
+- Um toque certo aciona uma batida de tambor; completar a sequência toca um grito de guerra e falhas recebem som de erro.
+- Erro ou tempo esgotado cancela o ataque e reduz uma vida; uma sequência completa defende e causa dano ao Oni.
+- A estrela da fase é concedida somente ao vencer sem perder vida e fica salva localmente.
+- Batidas e efeitos são sintetizados no navegador, sem áudio adicional para baixar.
+
 ### Modo Clássico
 
 - Seleção de conjuntos de hiragana.
@@ -63,6 +80,11 @@ japanesesMinigame/
 - Quantidade de cartas: `8`, `16`, `20`, `30`.
 - Estatísticas de partida: modo, tempo, tentativas, acertos.
 - Pré-aquecimento de imagens por dificuldade/alfabeto para reduzir atraso no primeiro início.
+
+### Próxima evolução da Aventura
+
+- Configurações de ilha e fase ficam separadas do motor de combate em `Adventure/adventure-data.js`.
+- A progressão salva as estrelas por fase no armazenamento local do navegador; adicionar sincronização entre dispositivos exigirá uma etapa separada.
 
 ## Melhorias recentes
 

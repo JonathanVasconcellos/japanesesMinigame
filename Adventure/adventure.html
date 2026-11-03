@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#17131f">
+  <title>Aventura Hiragana</title>
+  <link rel="stylesheet" href="adventure.css">
+</head>
+<body>
+  <main class="adventure-app">
+    <header class="topbar">
+      <a class="back-link" href="../index.html" aria-label="Voltar ao menu principal">← Menu</a>
+      <div class="brand">KANA QUEST <span>PROTÓTIPO</span></div>
+      <button id="soundToggle" class="sound-toggle" type="button" aria-pressed="true" aria-label="Desativar sons">♫</button>
+    </header>
+
+    <section id="islandScreen" class="screen island-screen" aria-labelledby="islandTitle">
+      <div class="eyebrow">SUA JORNADA COMEÇA AQUI</div>
+      <h1 id="islandTitle">Escolha uma ilha</h1>
+      <p class="intro">Aprenda os kana. Proteja seu grupo. Conquiste estrelas.</p>
+      <div class="archipelago" aria-label="Mapa das ilhas">
+        <svg class="island-hops" viewBox="0 0 360 500" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M100 105 C230 95 240 210 265 260 S200 360 150 400" />
+        </svg>
+        <button id="hiraganaIsland" class="map-island island-hiragana" type="button" aria-label="Entrar na Ilha Hiragana, Vogais, uma fase disponível">
+          <span class="island-ground"><span class="island-top"></span></span>
+          <span class="island-decor decor-hiragana" aria-hidden="true"><i>🌳</i><i>🌲</i><i>🪨</i><b>あ</b></span>
+          <span class="island-caption"><strong>Ilha Hiragana</strong><small>Vogais · 1 fase</small></span>
+          <span class="island-entry-mark" aria-hidden="true">›</span>
+        </button>
+        <div class="map-island island-katakana is-locked" aria-label="Ilha Katakana bloqueada">
+          <span class="island-ground"><span class="island-top"></span></span>
+          <span class="island-decor decor-katakana" aria-hidden="true"><i>🌋</i><i>🪨</i><i>🔥</i></span>
+          <span class="island-caption"><strong>Ilha Katakana</strong><small>Em breve</small></span>
+          <span class="island-lock" aria-hidden="true">🔒</span>
+        </div>
+        <div class="map-island island-mixed is-locked" aria-label="Ilha Misturada bloqueada">
+          <span class="island-ground"><span class="island-top"></span></span>
+          <span class="island-decor decor-mixed" aria-hidden="true"><i>🌵</i><i>🪨</i><i>あア</i></span>
+          <span class="island-caption"><strong>Ilha Misturada</strong><small>Em breve</small></span>
+          <span class="island-lock" aria-hidden="true">🔒</span>
+        </div>
+      </div>
+      <div class="island-stars"><span aria-hidden="true">★</span> Estrelas conquistadas <strong id="starCount">0</strong></div>
+    </section>
+
+    <section id="stageScreen" class="screen stage-screen hidden" aria-labelledby="stageTitle">
+      <div class="map-heading">
+        <button id="backToIslands" class="text-button" type="button">← Ilhas</button>
+        <div class="eyebrow">ILHA HIRAGANA</div>
+        <h1 id="stageTitle">Costa das Vogais</h1>
+        <span class="map-star-total"><span aria-hidden="true">★</span> <strong id="mapStarCount">0</strong></span>
+      </div>
+      <div class="island-map" aria-label="Mapa de fases da Ilha Hiragana">
+        <div class="map-scenery scenery-one" aria-hidden="true">🌳</div>
+        <div class="map-scenery scenery-two" aria-hidden="true">🌲</div>
+        <div class="map-scenery scenery-three" aria-hidden="true">🌿</div>
+        <div class="map-scenery scenery-four" aria-hidden="true">🌳</div>
+        <svg class="map-road" viewBox="0 0 400 900" preserveAspectRatio="none" aria-hidden="true">
+          <path class="road-shadow" d="M205 855 C205 810 205 780 205 735 S255 650 260 610 S220 550 155 500 S100 435 110 390 S175 315 225 285 S225 220 205 175 S145 100 110 55" />
+          <path class="road-fill" d="M205 855 C205 810 205 780 205 735 S255 650 260 610 S220 550 155 500 S100 435 110 390 S175 315 225 285 S225 220 205 175 S145 100 110 55" />
+          <path class="road-center" d="M205 855 C205 810 205 780 205 735 S255 650 260 610 S220 550 155 500 S100 435 110 390 S175 315 225 285 S225 220 205 175 S145 100 110 55" />
+        </svg>
+        <ol id="stageNodes" class="stage-nodes" aria-label="Fases"></ol>
+        <div class="map-water" aria-hidden="true"></div>
+      </div>
+      <p class="stage-note">Conclua sem perder vida para ganhar a estrela da fase.</p>
+    </section>
+
+    <section id="battleScreen" class="screen battle-screen hidden" aria-label="Combate">
+      <div class="battle-topline">
+        <button id="quitBattle" class="text-button" type="button">← Sair</button>
+        <span id="roundLabel" class="round-label">ATAQUE 1</span>
+        <span id="lifeDisplay" class="life-display" aria-label="3 vidas">♥ ♥ ♥</span>
+      </div>
+
+      <div class="arena">
+        <div class="fighter player-fighter" aria-label="Seu grupo">
+          <img class="fighter-art" src="assets/party-sprite.webp" alt="" draggable="false">
+          <small>SEU GRUPO</small>
+        </div>
+        <div id="targetSequence" class="target-sequence" aria-label="Sequência do ataque"></div>
+        <div class="fighter enemy-fighter" aria-label="Inimigo">
+          <img id="enemySprite" class="fighter-art" src="assets/oni-sprite.webp" alt="" draggable="false">
+          <small>ONI DA COSTA</small>
+        </div>
+      </div>
+
+      <div class="enemy-health-wrap">
+        <div class="health-caption"><span>VIDA DO INIMIGO</span><strong id="enemyHealthLabel">5 / 5</strong></div>
+        <div class="health-track"><div id="enemyHealthBar" class="health-fill"></div></div>
+      </div>
+
+      <div class="challenge-panel">
+        <div class="challenge-heading"><span id="enemyAction">O inimigo prepara o ataque!</span><span id="timerLabel" class="timer-label">5.0s</span></div>
+        <div class="progress-caption"><span>COMBO</span><span id="stepLabel">0 / 5</span></div>
+        <div id="stepProgress" class="step-progress" aria-hidden="true"></div>
+        <p id="battleFeedback" class="battle-feedback" aria-live="polite">Toque nas cartas correspondentes, na ordem.</p>
+      </div>
+
+      <div class="answer-dock">
+        <div class="dock-heading"><span>ESCOLHA O SOM CORRETO</span><span id="selectionPrompt">Qual é o romaji do kana destacado?</span></div>
+        <div id="optionCards" class="option-cards" role="group" aria-label="Opções de resposta"></div>
+        <div class="dock-actions"><span class="touch-hint">Toque em uma carta para responder</span></div>
+      </div>
+    </section>
+
+    <div id="battleModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+      <div class="result-card">
+        <div id="resultIcon" class="result-icon" aria-hidden="true">★</div>
+        <div id="resultEyebrow" class="eyebrow">FASE CONCLUÍDA</div>
+        <h2 id="resultTitle">Vitória!</h2>
+        <p id="resultMessage"></p>
+        <div class="earned-star" id="earnedStar"><span aria-hidden="true">★</span> Estrela perfeita</div>
+        <div class="result-actions"><button id="retryStage" class="primary-button" type="button">Jogar novamente</button><button id="resultToMap" class="secondary-button" type="button">Voltar às fases</button></div>
+      </div>
+    </div>
+    <script src="adventure-data.js"></script>
+    <script src="adventure.js"></script>
+  </main>
+</body>
+</html>
