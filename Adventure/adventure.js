@@ -25,6 +25,7 @@
     arena: document.querySelector('.arena'),
     enemyActor: document.querySelector('.enemy-fighter'),
     playerActor: document.querySelector('.player-fighter'),
+    playerSprite: document.getElementById('playerSprite'),
     lifeDisplay: document.getElementById('lifeDisplay'),
     roundLabel: document.getElementById('roundLabel'),
     enemyAction: document.getElementById('enemyAction'),
@@ -52,6 +53,21 @@
   let attackCount = 1;
   let locked = false;
   let lastWrongAnswer = false;
+
+  const playerPoses = {
+    idle: 'assets/party-pose-1.webp',
+    cut: 'assets/party-pose-2.webp',
+    guard: 'assets/party-pose-3.webp',
+    block: 'assets/party-pose-4.webp',
+    complete: 'assets/party-pose-5.webp'
+  };
+
+  function setPlayerPose(pose) {
+    const source = playerPoses[pose];
+    if (source && !ui.playerSprite.getAttribute('src').endsWith(source)) {
+      ui.playerSprite.src = source;
+    }
+  }
 
   function loadProgress() {
     try {
@@ -314,6 +330,7 @@
     ui.arena.classList.remove('player-damage', 'enemy-impact');
     animateActor(ui.enemyActor, 'attack-windup');
     ui.playerActor.classList.remove('damaged', 'counter-attack', 'blocking', 'cut');
+    setPlayerPose('idle');
     stepIndex = 0;
     locked = false;
     const possibleLengths = stage.sequenceLengthOptions || [stage.symbols.length];
@@ -422,6 +439,7 @@
     inputAnimating = true;
     ui.targetSequence.children[stepIndex]?.classList.add(isFinalHit ? 'finisher' : 'cut');
     animateActor(ui.playerActor, isFinalHit ? 'blocking' : 'cut');
+    setPlayerPose(isFinalHit ? 'block' : 'cut');
     if (isFinalHit) playFinisherSound();
     else playDrumHit(stepIndex === 0);
     stepIndex++;
@@ -459,6 +477,7 @@
     ui.optionCards.querySelectorAll('button').forEach(button => { button.disabled = true; });
     animateActor(ui.enemyActor, 'attack-lunge');
     animateActor(ui.playerActor, 'damaged');
+    setPlayerPose('guard');
     ui.arena.classList.remove('player-damage');
     void ui.arena.offsetWidth;
     ui.arena.classList.add('player-damage');
@@ -483,6 +502,8 @@
     ui.feedback.textContent = 'Última batida! O oni recebeu dano.';
     ui.feedback.className = 'battle-feedback good';
     animateActor(ui.enemyActor, 'recoil');
+    setPlayerPose('complete');
+    animateActor(ui.playerActor, 'counter-attack');
     ui.arena.classList.remove('enemy-impact');
     void ui.arena.offsetWidth;
     ui.arena.classList.add('enemy-impact');
