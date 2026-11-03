@@ -1,7 +1,8 @@
 (function() {
   const content = window.ADVENTURE_CONTENT;
-  const stage = content.stages['first-coast-battle'];
+  let stage = content.stages['first-coast-battle'];
   const hiraganaIsland = content.islands.find(island => island.id === stage.islandId);
+  const regularStageIds = content.regularStageIds;
   const starStorageKey = `kana-quest-progress-v${content.version}`;
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const screens = {
@@ -24,6 +25,7 @@
     enemyHealthLabel: document.getElementById('enemyHealthLabel'),
     arena: document.querySelector('.arena'),
     enemyActor: document.querySelector('.enemy-fighter'),
+    enemySprite: document.getElementById('enemySprite'),
     playerActor: document.querySelector('.player-fighter'),
     playerSprite: document.getElementById('playerSprite'),
     lifeDisplay: document.getElementById('lifeDisplay'),
@@ -53,6 +55,7 @@
   let attackCount = 1;
   let locked = false;
   let lastWrongAnswer = false;
+  let completedSequenceStreak = 0;
 
   const playerPoses = {
     idle: 'assets/party-pose-1.webp',
@@ -69,14 +72,26 @@
     }
   }
 
+  function setEnemyPose(pose) {
+    const source = stage.enemyPoses?.[pose] || stage.enemySprite;
+    ui.enemyActor.classList.toggle('boss-stunned', Boolean(stage.isBoss && pose === 'stunned'));
+    if (source && !ui.enemySprite.getAttribute('src').endsWith(source)) {
+      ui.enemySprite.src = source;
+    }
+  }
+
   function loadProgress() {
     try {
       const value = JSON.parse(localStorage.getItem(starStorageKey) || '{}');
-      return {
-        stars: Number.isFinite(value.stars) ? Math.max(0, value.stars) : 0,
-        completedStages: Array.isArray(value.completedStages) ? value.completedStages : [],
-        perfectStages: Array.isArray(value.perfectStages) ? value.perfectStages : []
+      const savedProgress = {
+        stars: 0,
+        completedStages: Array.isArray(value.completedStages) ? [...new Set(value.completedStages)] : [],
+        perfectStages: Array.isArray(value.perfectStages) ? [...new Set(value.perfectStages)] : []
       };
+      savedProgress.perfectStages = savedProgress.perfectStages.filter(id => content.stages[id]);
+      savedProgress.completedStages = savedProgress.completedStages.filter(id => content.stages[id]);
+      savedProgress.stars = savedProgress.perfectStages.length;
+      return savedProgress;
     } catch (_) {
       return { stars: 0, completedStages: [], perfectStages: [] };
     }
@@ -84,6 +99,7 @@
 
   function saveProgress() {
     try {
+      progress.stars = progress.perfectStages.length;
       localStorage.setItem(starStorageKey, JSON.stringify(progress));
     } catch (_) {
       // A fase continua jogável se o navegador bloquear armazenamento.
@@ -127,7 +143,8 @@
 
   function renderStageNodes() {
     ui.stageNodes.replaceChildren();
-    hiraganaIsland.stages.forEach(mapStage => {
+    const allRegularStagesPerfect = regularStageIds.every(id => progress.perfectStages.includes(id));
+    hiraganaIsland.stages.forEach((mapStage, index) => {
       const listItem = document.createElement('li');
       listItem.className = 'stage-node-wrap';
       listItem.style.setProperty('--node-x', mapStage.x);
@@ -140,13 +157,24 @@
       const isPlayable = Boolean(mapStage.stageId && content.stages[mapStage.stageId]);
       const wasPerfect = Boolean(mapStage.stageId && progress.perfectStages.includes(mapStage.stageId));
       const wasCompleted = Boolean(mapStage.stageId && progress.completedStages.includes(mapStage.stageId));
-      if (isPlayable) {
+      const isSecret = mapStage.type === 'secret';
+      const unlocked = isSecret
+        ? allRegularStagesPerfect
+        : index === 0 || wasCompleted || progress.completedStages.includes(hiraganaIsland.stages[index - 1]?.stageId);
+      button.classList.toggle('boss', mapStage.type === 'boss');
+      button.classList.toggle('secret', isSecret);
+      button.classList.toggle('unlocked', isSecret && allRegularStagesPerfect);
+      if (isPlayable && unlocked) {
         button.classList.add(wasCompleted ? 'completed' : 'available');
-        button.setAttribute('aria-label', `Fase ${mapStage.number}${wasCompleted ? ', concluída' : ', disponível'}`);
-        button.addEventListener('click', beginStage);
+        button.setAttribute('aria-label', isSecret
+          ? 'Desafio secreto, disponível'
+          : `Fase ${mapStage.number}${mapStage.type === 'boss' ? ', chefe' : ''}${wasCompleted ? ', concluída' : ', disponível'}`);
+        button.addEventListener('click', () => beginStage(mapStage.stageId));
       } else {
         button.disabled = true;
-        button.setAttribute('aria-label', `Fase ${mapStage.number}, bloqueada`);
+        button.setAttribute('aria-label', isSecret
+          ? 'Desafio secreto bloqueado: conquiste as 12 estrelas da ilha'
+          : `Fase ${mapStage.number}${mapStage.type === 'boss' ? ', chefe' : ''}, bloqueada`);
       }
 
       const star = document.createElement('span');
@@ -233,7 +261,9 @@
     button.setAttribute('aria-label', soundEnabled ? 'Desativar sons' : 'Ativar sons');
   }
 
-  function beginStage() {
+  function beginStage(stageId = stage.id) {
+    stage = content.stages[stageId];
+    if (!stage) return;
     ensureAudio();
     lives = stage.initialLives;
     displayedLives = stage.initialLives;
@@ -241,10 +271,17 @@
     stepIndex = 0;
     currentSequence = [];
     attackCount = 1;
+    completedSequenceStreak = 0;
     locked = false;
     lastWrongAnswer = false;
     inputAnimating = false;
     showScreen('battle');
+    ui.enemySprite.src = stage.enemySprite;
+    ui.enemySprite.alt = stage.enemyName;
+    ui.enemyActor.setAttribute('aria-label', stage.enemyName);
+    ui.enemyActor.classList.toggle('boss', stage.isBoss);
+    setEnemyPose('idle');
+    document.getElementById('roundLabel').textContent = stage.isSecret ? 'DESAFIO SECRETO' : `FASE ${stage.number}`;
     document.getElementById('selectionPrompt').textContent = stage.cardMode === 'romaji'
       ? 'Qual é o romaji do kana destacado?'
       : 'Qual kana corresponde ao som anunciado?';
@@ -329,6 +366,7 @@
     inputAnimating = false;
     ui.arena.classList.remove('player-damage', 'enemy-impact');
     animateActor(ui.enemyActor, 'attack-windup');
+    setEnemyPose('attack');
     ui.playerActor.classList.remove('damaged', 'counter-attack', 'blocking', 'cut');
     setPlayerPose('idle');
     stepIndex = 0;
@@ -341,7 +379,9 @@
     const secondsPerSeal = Math.max(0.1, Number(stage.secondsPerSeal) || 1);
     sequenceTimeLimit = currentSequence.length * secondsPerSeal;
     ui.targetSequence.replaceChildren();
-    ui.enemyAction.textContent = 'O inimigo prepara o ataque!';
+    ui.enemyAction.textContent = completedSequenceStreak >= 4
+      ? `Combo x${completedSequenceStreak}! Próxima sequência causa 2 de dano.`
+      : `${stage.enemyName} prepara o ataque!`;
     ui.feedback.textContent = stage.cardMode === 'romaji'
       ? 'Toque nos romaji que correspondem aos kana, na ordem.'
       : 'Memorize o ataque em romaji e toque nos kana correspondentes.';
@@ -469,6 +509,7 @@
     locked = true;
     inputAnimating = true;
     lastWrongAnswer = true;
+    completedSequenceStreak = 0;
     lives = Math.max(0, lives - stage.damagePerMistake);
     playErrorSound();
     ui.enemyAction.textContent = 'Ataque recebido!';
@@ -476,6 +517,7 @@
     ui.feedback.className = 'battle-feedback bad';
     ui.optionCards.querySelectorAll('button').forEach(button => { button.disabled = true; });
     animateActor(ui.enemyActor, 'attack-lunge');
+    setEnemyPose('attack');
     animateActor(ui.playerActor, 'damaged');
     setPlayerPose('guard');
     ui.arena.classList.remove('player-damage');
@@ -497,9 +539,12 @@
   function resolveCompletedSequence() {
     locked = true;
     inputAnimating = false;
-    enemyHealth = Math.max(0, enemyHealth - stage.damagePerCompletedSequence);
-    ui.enemyAction.textContent = 'Selo rebatido!';
-    ui.feedback.textContent = 'Última batida! O oni recebeu dano.';
+    completedSequenceStreak++;
+    const damage = completedSequenceStreak >= 5 ? 2 : stage.damagePerCompletedSequence;
+    enemyHealth = Math.max(0, enemyHealth - damage);
+    setEnemyPose(enemyHealth <= 0 ? 'stunned' : 'hit');
+    ui.enemyAction.textContent = damage === 2 ? 'Combo! Dano dobrado!' : 'Selo rebatido!';
+    ui.feedback.textContent = `Última batida! ${stage.enemyName} recebeu ${damage} de dano.`;
     ui.feedback.className = 'battle-feedback good';
     animateActor(ui.enemyActor, 'recoil');
     setPlayerPose('complete');
@@ -540,7 +585,7 @@
       ui.resultEyebrow.textContent = perfectRun ? 'VITÓRIA PERFEITA' : 'FASE CONCLUÍDA';
       ui.resultTitle.textContent = perfectRun ? 'Perfeito!' : 'Você venceu!';
       ui.resultMessage.textContent = !perfectRun
-        ? 'O Oni foi derrotado. Tente novamente sem perder vida para conquistar a estrela.'
+        ? `${stage.enemyName} foi derrotado. Tente novamente sem perder vida para conquistar a estrela.`
         : earnedStar
           ? 'Você aparou todos os ataques sem perder vida. A estrela é sua!'
           : 'Você repetiu a fase perfeitamente. A estrela desta fase já foi conquistada.';
@@ -550,7 +595,7 @@
       ui.resultIcon.classList.add('defeat');
       ui.resultEyebrow.textContent = 'FIM DE COMBATE';
       ui.resultTitle.textContent = 'Seu grupo precisa descansar';
-      ui.resultMessage.textContent = 'Pratique as vogais e tente novamente.';
+      ui.resultMessage.textContent = `Pratique as famílias desta fase e tente novamente. Seu combo também recomeçará.`;
       ui.earnedStar.classList.add('hidden');
     }
     ui.modal.classList.remove('hidden');

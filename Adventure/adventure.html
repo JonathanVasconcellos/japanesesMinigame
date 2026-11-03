@@ -49,7 +49,7 @@
       <div class="map-heading">
         <button id="backToIslands" class="text-button" type="button">← Ilhas</button>
         <div class="eyebrow">ILHA HIRAGANA</div>
-        <h1 id="stageTitle">Costa das Vogais</h1>
+        <h1 id="stageTitle">Trilha das Famílias</h1>
         <span class="map-star-total"><span aria-hidden="true">★</span> <strong id="mapStarCount">0</strong></span>
       </div>
       <div class="island-map" aria-label="Mapa de fases da Ilha Hiragana">
@@ -57,15 +57,15 @@
         <div class="map-scenery scenery-two" aria-hidden="true">🌲</div>
         <div class="map-scenery scenery-three" aria-hidden="true">🌿</div>
         <div class="map-scenery scenery-four" aria-hidden="true">🌳</div>
-        <svg class="map-road" viewBox="0 0 400 900" preserveAspectRatio="none" aria-hidden="true">
-          <path class="road-shadow" d="M205 855 C205 810 205 780 205 735 S255 650 260 610 S220 550 155 500 S100 435 110 390 S175 315 225 285 S225 220 205 175 S145 100 110 55" />
-          <path class="road-fill" d="M205 855 C205 810 205 780 205 735 S255 650 260 610 S220 550 155 500 S100 435 110 390 S175 315 225 285 S225 220 205 175 S145 100 110 55" />
-          <path class="road-center" d="M205 855 C205 810 205 780 205 735 S255 650 260 610 S220 550 155 500 S100 435 110 390 S175 315 225 285 S225 220 205 175 S145 100 110 55" />
+        <svg class="map-road" viewBox="0 0 400 1000" preserveAspectRatio="none" aria-hidden="true">
+          <path class="road-shadow" d="M200 920 C200 890 200 875 200 850 C200 820 160 800 144 780 C130 750 225 730 248 710 C270 680 270 660 260 640 C248 610 190 590 168 570 C140 540 105 525 100 500 C100 470 200 450 232 430 C275 410 300 385 292 360 C280 330 205 305 176 290 C145 270 110 248 116 220 C122 190 218 170 240 150 C265 128 285 95 264 70" />
+          <path class="road-fill" d="M200 920 C200 890 200 875 200 850 C200 820 160 800 144 780 C130 750 225 730 248 710 C270 680 270 660 260 640 C248 610 190 590 168 570 C140 540 105 525 100 500 C100 470 200 450 232 430 C275 410 300 385 292 360 C280 330 205 305 176 290 C145 270 110 248 116 220 C122 190 218 170 240 150 C265 128 285 95 264 70" />
+          <path class="road-center" d="M200 920 C200 890 200 875 200 850 C200 820 160 800 144 780 C130 750 225 730 248 710 C270 680 270 660 260 640 C248 610 190 590 168 570 C140 540 105 525 100 500 C100 470 200 450 232 430 C275 410 300 385 292 360 C280 330 205 305 176 290 C145 270 110 248 116 220 C122 190 218 170 240 150 C265 128 285 95 264 70" />
         </svg>
         <ol id="stageNodes" class="stage-nodes" aria-label="Fases"></ol>
         <div class="map-water" aria-hidden="true"></div>
       </div>
-      <p class="stage-note">Conclua sem perder vida para ganhar a estrela da fase.</p>
+      <p class="stage-note">Conclua sem perder vida para ganhar a estrela. As 12 estrelas liberam o desafio secreto.</p>
     </section>
 
     <section id="battleScreen" class="screen battle-screen hidden" aria-label="Combate">
@@ -94,7 +94,7 @@
 
       <div class="challenge-panel">
         <div class="challenge-heading"><span id="enemyAction">O inimigo prepara o ataque!</span><span id="timerLabel" class="timer-label">5.0s</span></div>
-        <div class="progress-caption"><span>COMBO</span><span id="stepLabel">0 / 5</span></div>
+        <div class="progress-caption"><span>SELOS DO ATAQUE</span><span id="stepLabel">0 / 5</span></div>
         <div id="stepProgress" class="step-progress" aria-hidden="true"></div>
         <p id="battleFeedback" class="battle-feedback" aria-live="polite">Toque nas cartas correspondentes, na ordem.</p>
       </div>
