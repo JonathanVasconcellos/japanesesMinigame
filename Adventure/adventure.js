@@ -16,6 +16,7 @@
     starCount: document.getElementById('starCount'),
     mapStarCount: document.getElementById('mapStarCount'),
     stageNodes: document.getElementById('stageNodes'),
+    stageNote: document.getElementById('stageNote'),
     targetSequence: document.getElementById('targetSequence'),
     stepProgress: document.getElementById('stepProgress'),
     stepLabel: document.getElementById('stepLabel'),
@@ -57,6 +58,9 @@
   let locked = false;
   let lastWrongAnswer = false;
   let completedSequenceStreak = 0;
+  let spriteAssetsReady = false;
+  const failedSpriteAssets = new Set();
+  const preloadedSprites = new Map();
 
   const playerPoses = {
     idle: 'assets/party-pose-1.webp',
@@ -66,15 +70,63 @@
     complete: 'assets/party-pose-5.webp'
   };
 
+  function preloadSprite(source) {
+    const image = new Image();
+    image.decoding = 'async';
+    preloadedSprites.set(source, image);
+    return new Promise(resolve => {
+      let settled = false;
+      const finish = loaded => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(timeout);
+        if (!loaded) failedSpriteAssets.add(source);
+        resolve(loaded);
+      };
+      const timeout = window.setTimeout(() => finish(false), 12000);
+      image.onload = () => {
+        if (typeof image.decode === 'function') {
+          image.decode().then(() => finish(true), () => finish(image.naturalWidth > 0));
+        } else {
+          finish(true);
+        }
+      };
+      image.onerror = () => finish(false);
+      image.src = source;
+      if (image.complete) finish(image.naturalWidth > 0);
+    });
+  }
+
+  function preloadAdventureSprites() {
+    const sources = new Set([...Object.values(playerPoses), 'assets/party-sprite.webp', 'assets/oni-sprite.webp']);
+    Object.values(content.stages).forEach(configuredStage => {
+      Object.values(configuredStage.enemies).forEach(enemy => {
+        sources.add(enemy.sprite);
+        Object.values(enemy.poses).forEach(source => sources.add(source));
+      });
+    });
+    return Promise.all([...sources].map(preloadSprite)).then(() => {
+      spriteAssetsReady = true;
+      if (failedSpriteAssets.has(playerPoses.idle)) ui.playerSprite.src = 'assets/party-sprite.webp';
+      ui.stageNote.textContent = failedSpriteAssets.size
+        ? 'Alguns sprites não carregaram e usarão uma imagem alternativa. Conclua sem perder vida para ganhar a estrela; as 12 estrelas liberam o desafio secreto.'
+        : 'Conclua sem perder vida para ganhar a estrela. As 12 estrelas liberam o desafio secreto.';
+      updateProgressDisplay();
+    });
+  }
+
   function setPlayerPose(pose) {
-    const source = playerPoses[pose];
+    let source = playerPoses[pose];
+    if (failedSpriteAssets.has(source)) source = 'assets/party-sprite.webp';
     if (source && !ui.playerSprite.getAttribute('src').endsWith(source)) {
       ui.playerSprite.src = source;
     }
   }
 
   function setEnemyPose(pose) {
-    const source = currentEnemy?.poses?.[pose] || currentEnemy?.sprite;
+    let source = currentEnemy?.poses?.[pose] || currentEnemy?.sprite;
+    if (failedSpriteAssets.has(source)) source = currentEnemy?.sprite;
+    if (failedSpriteAssets.has(source)) source = 'assets/oni-sprite.webp';
     ui.enemyActor.classList.toggle('boss-stunned', Boolean(stage.isBoss && pose === 'defeated'));
     if (source && !ui.enemySprite.getAttribute('src').endsWith(source)) {
       ui.enemySprite.src = source;
@@ -154,7 +206,10 @@
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'stage-node';
-      button.textContent = mapStage.number;
+      const stageLabel = document.createElement('span');
+      stageLabel.className = 'stage-node-label';
+      stageLabel.textContent = mapStage.number;
+      button.appendChild(stageLabel);
       const isPlayable = Boolean(mapStage.stageId && content.stages[mapStage.stageId]);
       const wasPerfect = Boolean(mapStage.stageId && progress.perfectStages.includes(mapStage.stageId));
       const wasCompleted = Boolean(mapStage.stageId && progress.completedStages.includes(mapStage.stageId));
@@ -165,17 +220,36 @@
       button.classList.toggle('boss', mapStage.type === 'boss');
       button.classList.toggle('secret', isSecret);
       button.classList.toggle('unlocked', isSecret && allRegularStagesPerfect);
-      if (isPlayable && unlocked) {
+      const statusIcon = document.createElement('span');
+      statusIcon.className = 'stage-status-icon';
+      statusIcon.setAttribute('aria-hidden', 'true');
+      if (mapStage.type === 'boss') {
+        const kindIcon = document.createElement('span');
+        kindIcon.className = 'stage-kind-icon';
+        kindIcon.textContent = '🐉';
+        kindIcon.setAttribute('aria-hidden', 'true');
+        button.appendChild(kindIcon);
+      }
+      button.appendChild(statusIcon);
+      if (isPlayable && unlocked && spriteAssetsReady) {
         button.classList.add(wasCompleted ? 'completed' : 'available');
+        statusIcon.textContent = wasCompleted ? '✓' : '▶';
         button.setAttribute('aria-label', isSecret
           ? 'Desafio secreto, disponível'
-          : `Fase ${mapStage.number}${mapStage.type === 'boss' ? ', chefe' : ''}${wasCompleted ? ', concluída' : ', disponível'}`);
+          : `Fase ${mapStage.number}${mapStage.type === 'boss' ? ', chefe' : ''}, ${wasCompleted ? 'concluída' : 'disponível'}`);
         button.addEventListener('click', () => beginStage(mapStage.stageId));
+      } else if (isPlayable && unlocked) {
+        button.disabled = true;
+        button.classList.add('loading');
+        statusIcon.textContent = '…';
+        button.setAttribute('aria-label', isSecret ? 'Carregando sprites do desafio secreto' : `Carregando sprites da fase ${mapStage.number}`);
       } else {
         button.disabled = true;
+        statusIcon.textContent = '🔒';
+        if (isSecret) listItem.classList.add('secret-locked');
         button.setAttribute('aria-label', isSecret
           ? 'Desafio secreto bloqueado: conquiste as 12 estrelas da ilha'
-          : `Fase ${mapStage.number}${mapStage.type === 'boss' ? ', chefe' : ''}, bloqueada`);
+          : `Fase ${mapStage.number}${mapStage.type === 'boss' ? ', chefe' : ''}, bloqueada. Conclua a fase ${mapStage.number - 1} para liberar.`);
       }
 
       const star = document.createElement('span');
@@ -279,6 +353,7 @@
     lastWrongAnswer = false;
     inputAnimating = false;
     showScreen('battle');
+    ui.arena.classList.toggle('boss-fight', stage.isBoss);
     ui.enemySprite.src = currentEnemy.sprite;
     ui.enemySprite.alt = currentEnemy.name;
     ui.enemyActor.setAttribute('aria-label', currentEnemy.name);
@@ -624,4 +699,11 @@
 
   setSoundButton();
   updateProgressDisplay();
+  preloadAdventureSprites().catch(() => {
+    spriteAssetsReady = true;
+    failedSpriteAssets.add('assets/party-pose-1.webp');
+    ui.playerSprite.src = 'assets/party-sprite.webp';
+    ui.stageNote.textContent = 'Alguns sprites não carregaram; imagens alternativas serão usadas. Conclua sem perder vida para ganhar a estrela. As 12 estrelas liberam o desafio secreto.';
+    updateProgressDisplay();
+  });
 })();

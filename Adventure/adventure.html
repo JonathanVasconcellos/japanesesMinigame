@@ -23,10 +23,10 @@
         <svg class="island-hops" viewBox="0 0 360 500" preserveAspectRatio="none" aria-hidden="true">
           <path d="M100 105 C230 95 240 210 265 260 S200 360 150 400" />
         </svg>
-        <button id="hiraganaIsland" class="map-island island-hiragana" type="button" aria-label="Entrar na Ilha Hiragana, Vogais, uma fase disponível">
+        <button id="hiraganaIsland" class="map-island island-hiragana" type="button" aria-label="Entrar na Ilha Hiragana, 46 kana, 12 fases">
           <span class="island-ground"><span class="island-top"></span></span>
           <span class="island-decor decor-hiragana" aria-hidden="true"><i>🌳</i><i>🌲</i><i>🪨</i><b>あ</b></span>
-          <span class="island-caption"><strong>Ilha Hiragana</strong><small>Vogais · 1 fase</small></span>
+          <span class="island-caption"><strong>Ilha Hiragana</strong><small>46 kana · 12 fases</small></span>
           <span class="island-entry-mark" aria-hidden="true">›</span>
         </button>
         <div class="map-island island-katakana is-locked" aria-label="Ilha Katakana bloqueada">
@@ -52,6 +52,12 @@
         <h1 id="stageTitle">Trilha das Famílias</h1>
         <span class="map-star-total"><span aria-hidden="true">★</span> <strong id="mapStarCount">0</strong></span>
       </div>
+      <ul class="stage-legend" aria-label="Legenda das fases">
+        <li><span class="legend-mark available" aria-hidden="true">▶</span>Disponível</li>
+        <li><span class="legend-mark locked" aria-hidden="true">🔒</span>Bloqueada</li>
+        <li><span class="legend-mark completed" aria-hidden="true">✓</span>Concluída</li>
+        <li><span class="legend-mark boss" aria-hidden="true">🐉</span>Chefe</li>
+      </ul>
       <div class="island-map" aria-label="Mapa de fases da Ilha Hiragana">
         <div class="map-scenery scenery-one" aria-hidden="true">🌳</div>
         <div class="map-scenery scenery-two" aria-hidden="true">🌲</div>
@@ -65,7 +71,7 @@
         <ol id="stageNodes" class="stage-nodes" aria-label="Fases"></ol>
         <div class="map-water" aria-hidden="true"></div>
       </div>
-      <p class="stage-note">Conclua sem perder vida para ganhar a estrela. As 12 estrelas liberam o desafio secreto.</p>
+      <p id="stageNote" class="stage-note" aria-live="polite">Carregando sprites das fases…</p>
     </section>
 
     <section id="battleScreen" class="screen battle-screen hidden" aria-label="Combate">
