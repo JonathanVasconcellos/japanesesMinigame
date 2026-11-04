@@ -18,13 +18,13 @@
     stageNodes: document.getElementById('stageNodes'),
     stageNote: document.getElementById('stageNote'),
     targetSequence: document.getElementById('targetSequence'),
-    stepProgress: document.getElementById('stepProgress'),
-    stepLabel: document.getElementById('stepLabel'),
     timerLabel: document.getElementById('timerLabel'),
+    comboLabel: document.getElementById('comboLabel'),
     optionCards: document.getElementById('optionCards'),
     feedback: document.getElementById('battleFeedback'),
     enemyHealthBar: document.getElementById('enemyHealthBar'),
     enemyHealthLabel: document.getElementById('enemyHealthLabel'),
+    enemyNameLabel: document.getElementById('enemyNameLabel'),
     arena: document.querySelector('.arena'),
     enemyActor: document.querySelector('.enemy-fighter'),
     enemySprite: document.getElementById('enemySprite'),
@@ -38,11 +38,194 @@
     resultEyebrow: document.getElementById('resultEyebrow'),
     resultTitle: document.getElementById('resultTitle'),
     resultMessage: document.getElementById('resultMessage'),
-    earnedStar: document.getElementById('earnedStar')
+    resultAttacks: document.getElementById('resultAttacks'),
+    resultDuration: document.getElementById('resultDuration'),
+    resultRecord: document.getElementById('resultRecord'),
+    nextStageButton: document.getElementById('nextStage'),
+    earnedStar: document.getElementById('earnedStar'),
+    soundManager: document.getElementById('soundManagerBackdrop'),
+    openSoundManager: document.getElementById('openSoundManager'),
+    closeSoundManager: document.getElementById('closeSoundManager'),
+    soundChannels: {
+      music: { input: document.getElementById('soundMusicVolume'), output: document.getElementById('soundMusicVolumeValue') },
+      effects: { input: document.getElementById('soundEffectsVolume'), output: document.getElementById('soundEffectsVolumeValue') },
+      interface: { input: document.getElementById('soundInterfaceVolume'), output: document.getElementById('soundInterfaceVolumeValue') }
+    }
   };
 
   let audioContext = null;
-  let soundEnabled = true;
+  let musicGain = null;
+  let effectsGain = null;
+  let interfaceGain = null;
+  const musicBuffers = { menu: null, battle: null };
+  const musicBufferLoading = { menu: false, battle: false };
+  const musicBufferFailed = { menu: false, battle: false };
+  let musicSource = null;
+  let activeMusicKey = null;
+  let pausedTimerRemaining = null;
+  let pausedTransitionRemaining = null;
+  let pendingTransitionCallback = null;
+  let pendingTransitionDeadline = 0;
+  let stageStartedAt = 0;
+  let stagePausedTimeMs = 0;
+  let soundManagerOpenedAt = 0;
+  let previousSettingsFocus = null;
+  let soundManagerInertScreen = null;
+  let soundManagerOpen = false;
+  const soundSettingsStorageKey = 'kana-quest-sound-settings-v2';
+  const savedSoundSettings = loadSoundSettings();
+  const musicAssetPromises = {
+    menu: fetch('assets/menu-music.mp3')
+      .then(response => { if (!response.ok) throw new Error('Falha ao carregar música do menu.'); return response.arrayBuffer(); })
+      .catch(() => null),
+    battle: fetch('assets/MUSICA.mp3')
+      .then(response => { if (!response.ok) throw new Error('Falha ao carregar música de combate.'); return response.arrayBuffer(); })
+      .catch(() => null)
+  };
+  const soundController = {
+    enabled: savedSoundSettings.enabled,
+    volumes: savedSoundSettings.volumes,
+    musicFallbacks: {
+      menu: new Audio('assets/menu-music.mp3'),
+      battle: new Audio('assets/MUSICA.mp3')
+    },
+    samples: {
+      seal: new Audio('assets/Acerto.mp3'),
+      finisher: new Audio('assets/Final.mp3')
+    },
+    interfaceSample: new Audio('assets/interface-click.mp3'),
+    apply() {
+      const levels = {
+        music: this.enabled ? this.volumes.music : 0,
+        effects: this.enabled ? this.volumes.effects : 0,
+        interface: this.enabled ? this.volumes.interface : 0
+      };
+      if (audioContext) {
+        if (musicGain) musicGain.gain.setTargetAtTime(levels.music, audioContext.currentTime, 0.025);
+        if (effectsGain) effectsGain.gain.setTargetAtTime(levels.effects, audioContext.currentTime, 0.025);
+        if (interfaceGain) interfaceGain.gain.setTargetAtTime(levels.interface, audioContext.currentTime, 0.025);
+      }
+      Object.entries(this.samples).forEach(([name, sample]) => {
+        sample.volume = Math.min(1, levels.effects * (name === 'finisher' ? 1.4 : 1));
+      });
+      this.interfaceSample.volume = levels.interface;
+      Object.values(this.musicFallbacks).forEach(sample => { sample.volume = levels.music; });
+    },
+    save() {
+      try {
+        localStorage.setItem(soundSettingsStorageKey, JSON.stringify({ enabled: this.enabled, volumes: this.volumes }));
+      } catch (_) {
+        // Audio preferences remain usable if storage is unavailable.
+      }
+    },
+    setEnabled(enabled) {
+      this.enabled = Boolean(enabled);
+      this.apply();
+      this.save();
+      if (!this.enabled) this.stopSamples();
+      this.syncMusic();
+    },
+    setVolume(channel, volume) {
+      this.volumes[channel] = Math.max(0, Math.min(1, Number(volume) || 0));
+      this.apply();
+      this.save();
+      this.syncMusic();
+    },
+    play(name) {
+      if (!this.enabled || this.volumes.effects <= 0) return;
+      const sample = this.samples[name];
+      if (!sample) return;
+      sample.volume = Math.min(1, this.volumes.effects * (name === 'finisher' ? 1.4 : 1));
+      sample.pause();
+      try { sample.currentTime = 0; } catch (_) {}
+      const playback = sample.play();
+      if (playback && typeof playback.catch === 'function') playback.catch(() => {});
+    },
+    stopSamples() {
+      Object.values(this.samples).forEach(sample => {
+        sample.pause();
+        try { sample.currentTime = 0; } catch (_) {}
+      });
+      this.interfaceSample.pause();
+      try { this.interfaceSample.currentTime = 0; } catch (_) {}
+    },
+    playInterface() {
+      if (!this.enabled || this.volumes.interface <= 0) return;
+      this.interfaceSample.pause();
+      try { this.interfaceSample.currentTime = 0; } catch (_) {}
+      const playback = this.interfaceSample.play();
+      if (playback && typeof playback.catch === 'function') playback.catch(() => {});
+    },
+    syncMusic() {
+      const track = !screens.battle.classList.contains('hidden')
+        ? 'battle'
+        : (!screens.stage.classList.contains('hidden') || !screens.islands.classList.contains('hidden') ? 'menu' : null);
+      const shouldPlay = this.enabled && this.volumes.music > 0 && track !== null;
+      if (!shouldPlay) {
+        if (musicSource) {
+          try { musicSource.stop(); } catch (_) {}
+          musicSource.disconnect();
+          musicSource = null;
+        }
+        Object.values(this.musicFallbacks).forEach(sample => sample.pause());
+        activeMusicKey = null;
+        return;
+      }
+      if (activeMusicKey !== track) {
+        if (musicSource) {
+          try { musicSource.stop(); } catch (_) {}
+          musicSource.disconnect();
+          musicSource = null;
+        }
+        Object.entries(this.musicFallbacks).forEach(([key, sample]) => {
+          sample.pause();
+          if (key !== track) { try { sample.currentTime = 0; } catch (_) {} }
+        });
+        activeMusicKey = track;
+      }
+      if (audioContext && audioContext.state === 'suspended') audioContext.resume().catch(() => {});
+      if (musicBuffers[track] && audioContext && !musicSource) {
+        const source = audioContext.createBufferSource();
+        musicSource = source;
+        source.buffer = musicBuffers[track];
+        source.loop = true;
+        source.connect(musicGain || audioContext.destination);
+        source.onended = () => { if (musicSource === source) musicSource = null; };
+        source.start();
+        this.musicFallbacks[track].pause();
+        return;
+      }
+      if (musicBufferFailed[track]) {
+        const playback = this.musicFallbacks[track].play();
+        if (playback && typeof playback.catch === 'function') playback.catch(() => {});
+      } else if (!musicBuffers[track] && !musicBufferLoading[track] && audioContext) {
+        musicBufferLoading[track] = true;
+        musicAssetPromises[track]
+          .then(data => { if (!data) throw new Error('A faixa não pôde ser carregada.'); return audioContext.decodeAudioData(data.slice(0)); })
+          .then(buffer => { musicBuffers[track] = buffer; this.syncMusic(); })
+          .catch(() => {
+            musicBufferFailed[track] = true;
+            this.syncMusic();
+          })
+          .finally(() => { musicBufferLoading[track] = false; });
+      }
+    }
+  };
+  Object.values(soundController.musicFallbacks).forEach(sample => {
+    sample.loop = true;
+    sample.preload = 'auto';
+    sample.load();
+  });
+  Object.values(soundController.samples).forEach(sample => {
+    sample.preload = 'auto';
+    sample.volume = soundController.enabled
+      ? Math.min(1, soundController.volumes.effects * (sample === soundController.samples.finisher ? 1.4 : 1))
+      : 0;
+    sample.load();
+  });
+  soundController.interfaceSample.preload = 'auto';
+  soundController.interfaceSample.volume = soundController.enabled ? soundController.volumes.interface : 0;
+  soundController.interfaceSample.load();
   let progress = loadProgress();
   let timerInterval = null;
   let pendingTransitionTimeout = null;
@@ -142,14 +325,23 @@
       const savedProgress = {
         stars: 0,
         completedStages: Array.isArray(value.completedStages) ? [...new Set(value.completedStages)] : [],
-        perfectStages: Array.isArray(value.perfectStages) ? [...new Set(value.perfectStages)] : []
+        perfectStages: Array.isArray(value.perfectStages) ? [...new Set(value.perfectStages)] : [],
+        records: {}
       };
       savedProgress.perfectStages = savedProgress.perfectStages.filter(id => content.stages[id]);
       savedProgress.completedStages = savedProgress.completedStages.filter(id => content.stages[id]);
+      Object.entries(value.records && typeof value.records === 'object' ? value.records : {}).forEach(([id, record]) => {
+        if (!content.stages[id] || !record || typeof record !== 'object') return;
+        const attacks = Number(record.attacks);
+        const durationMs = Number(record.durationMs);
+        if (Number.isInteger(attacks) && attacks > 0 && Number.isFinite(durationMs) && durationMs >= 0) {
+          savedProgress.records[id] = { attacks, durationMs };
+        }
+      });
       savedProgress.stars = savedProgress.perfectStages.length;
       return savedProgress;
     } catch (_) {
-      return { stars: 0, completedStages: [], perfectStages: [] };
+      return { stars: 0, completedStages: [], perfectStages: [], records: {} };
     }
   }
 
@@ -162,17 +354,43 @@
     }
   }
 
+  function loadSoundSettings() {
+    try {
+      const settings = JSON.parse(localStorage.getItem(soundSettingsStorageKey)
+        || localStorage.getItem('kana-quest-sound-settings-v1') || '{}');
+      const legacyVolume = Number(settings.volume);
+      const defaults = { music: 0.7, effects: 0.7, interface: 0.35 };
+      const stored = settings.volumes || {};
+      const volumes = Object.fromEntries(Object.entries(defaults).map(([channel, fallback]) => {
+        const value = Number(stored[channel] ?? (channel !== 'interface' && Number.isFinite(legacyVolume) ? legacyVolume : fallback));
+        return [channel, Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : fallback];
+      }));
+      return {
+        enabled: settings.enabled !== false,
+        volumes
+      };
+    } catch (_) {
+      return { enabled: true, volumes: { music: 0.7, effects: 0.7, interface: 0.35 } };
+    }
+  }
+
   function showScreen(name) {
+    if (soundManagerOpen) closeSoundManager();
     stopTimer();
     inputAnimating = false;
-    document.querySelector('.adventure-app').classList.toggle('showing-stage-map', name === 'stage');
+    const app = document.querySelector('.adventure-app');
+    app.classList.toggle('showing-stage-map', name === 'stage');
+    app.classList.toggle('showing-battle', name === 'battle');
     if (pendingTransitionTimeout !== null) {
       window.clearTimeout(pendingTransitionTimeout);
       pendingTransitionTimeout = null;
     }
+    pendingTransitionCallback = null;
+    pendingTransitionDeadline = 0;
     Object.entries(screens).forEach(([key, screen]) => {
       screen.classList.toggle('hidden', key !== name);
     });
+    soundController.syncMusic();
     ui.modal.classList.add('hidden');
   }
 
@@ -264,11 +482,25 @@
   }
 
   function ensureAudio() {
-    if (!soundEnabled) return null;
+    if (!soundController.enabled) return null;
     const AudioContextType = window.AudioContext || window.webkitAudioContext;
     if (!AudioContextType) return null;
-    if (!audioContext) audioContext = new AudioContextType();
-    if (audioContext.state === 'suspended') audioContext.resume().catch(() => {});
+    if (!audioContext) {
+      audioContext = new AudioContextType();
+      musicGain = audioContext.createGain();
+      effectsGain = audioContext.createGain();
+      interfaceGain = audioContext.createGain();
+      musicGain.connect(audioContext.destination);
+      effectsGain.connect(audioContext.destination);
+      interfaceGain.connect(audioContext.destination);
+      soundController.apply();
+    }
+    if (audioContext.state === 'suspended') {
+      audioContext.resume().then(() => {
+        soundController.syncMusic();
+      }).catch(() => {});
+    }
+    soundController.syncMusic();
     return audioContext;
   }
 
@@ -284,12 +516,12 @@
     gain.gain.exponentialRampToValueAtTime(volume, startAt + 0.012);
     gain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
     oscillator.connect(gain);
-    gain.connect(context.destination);
+    gain.connect(effectsGain || context.destination);
     oscillator.start(startAt);
     oscillator.stop(startAt + duration + 0.02);
   }
 
-  function playDrumHit(accent = false) {
+  function playSynthDrumHit(accent = false) {
     const context = ensureAudio();
     if (!context) return;
     const now = context.currentTime;
@@ -302,7 +534,7 @@
     drumGain.gain.exponentialRampToValueAtTime(accent ? 0.42 : 0.23, now + 0.008);
     drumGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.19);
     oscillator.connect(drumGain);
-    drumGain.connect(context.destination);
+    drumGain.connect(effectsGain || context.destination);
     oscillator.start(now);
     oscillator.stop(now + 0.21);
 
@@ -317,25 +549,116 @@
     noiseGain.gain.setValueAtTime(accent ? 0.12 : 0.06, now);
     noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.055);
     noise.connect(noiseGain);
-    noiseGain.connect(context.destination);
+    noiseGain.connect(effectsGain || context.destination);
     noise.start(now);
   }
 
+  function playSealSound() {
+    soundController.play('seal');
+  }
+
   function playFinisherSound() {
-    playDrumHit(true);
+    soundController.play('finisher');
   }
 
   function playErrorSound() {
-    playDrumHit(true);
+    playSynthDrumHit(true);
     playTone(155, 0.3, 'sawtooth', 0.055, 0.04);
     playTone(103, 0.34, 'triangle', 0.09, 0.12);
   }
 
   function setSoundButton() {
-    const button = document.getElementById('soundToggle');
-    button.textContent = soundEnabled ? '♫' : '♪̸';
-    button.setAttribute('aria-pressed', String(soundEnabled));
-    button.setAttribute('aria-label', soundEnabled ? 'Desativar sons' : 'Ativar sons');
+    document.querySelectorAll('#soundToggle, #soundToggleModal, #soundToggleMenu').forEach(button => {
+      button.textContent = soundController.enabled ? '♫' : '♪̸';
+      button.setAttribute('aria-pressed', String(soundController.enabled));
+      button.setAttribute('aria-label', soundController.enabled ? 'Silenciar todos os sons' : 'Ativar todos os sons');
+    });
+    Object.entries(ui.soundChannels).forEach(([channel, controls]) => {
+      const volume = soundController.volumes[channel];
+      controls.input.value = volume;
+      controls.output.value = `${Math.round(volume * 100)}%`;
+      controls.input.setAttribute('aria-valuetext', `${Math.round(volume * 100)} por cento`);
+    });
+  }
+
+  function schedulePendingTransition(callback, delay) {
+    if (pendingTransitionTimeout !== null) window.clearTimeout(pendingTransitionTimeout);
+    pendingTransitionCallback = callback;
+    pendingTransitionDeadline = performance.now() + delay;
+    if (soundManagerOpen) {
+      pausedTransitionRemaining = delay;
+      pendingTransitionTimeout = null;
+      return;
+    }
+    pendingTransitionTimeout = window.setTimeout(() => {
+      const transition = pendingTransitionCallback;
+      pendingTransitionTimeout = null;
+      pendingTransitionCallback = null;
+      pendingTransitionDeadline = 0;
+      if (!soundManagerOpen) transition?.();
+      else {
+        pendingTransitionCallback = transition;
+        pausedTransitionRemaining = 0;
+      }
+    }, delay);
+  }
+
+  function openSoundManager() {
+    if (soundManagerOpen) return;
+    soundManagerOpen = true;
+    previousSettingsFocus = document.activeElement;
+    if (!screens.battle.classList.contains('hidden')) soundManagerOpenedAt = performance.now();
+    document.querySelector('.adventure-app').classList.add('sound-manager-open');
+    soundManagerInertScreen = Object.values(screens).find(screen => !screen.classList.contains('hidden')) || null;
+    if (soundManagerInertScreen) soundManagerInertScreen.inert = true;
+    ui.soundManager.classList.remove('hidden');
+
+    if (timerInterval !== null) {
+      pausedTimerRemaining = Math.max(0, deadline - performance.now());
+      stopTimer();
+    }
+    if (pendingTransitionTimeout !== null) {
+      pausedTransitionRemaining = Math.max(0, pendingTransitionDeadline - performance.now());
+      window.clearTimeout(pendingTransitionTimeout);
+      pendingTransitionTimeout = null;
+    }
+    ui.closeSoundManager.focus();
+  }
+
+  function closeSoundManager() {
+    if (!soundManagerOpen) return;
+    soundManagerOpen = false;
+    if (soundManagerOpenedAt > 0) {
+      stagePausedTimeMs += performance.now() - soundManagerOpenedAt;
+      soundManagerOpenedAt = 0;
+    }
+    ui.soundManager.classList.add('hidden');
+    document.querySelector('.adventure-app').classList.remove('sound-manager-open');
+    if (soundManagerInertScreen) soundManagerInertScreen.inert = false;
+    soundManagerInertScreen = null;
+
+    if (pausedTimerRemaining !== null) {
+      const remaining = pausedTimerRemaining;
+      pausedTimerRemaining = null;
+      if (remaining <= 0 && !locked) resolveMistake('O tempo acabou! O inimigo acertou o ataque.');
+      else if (!locked) {
+        deadline = performance.now() + remaining;
+        updateTimer();
+        if (!locked) timerInterval = window.setInterval(updateTimer, 100);
+      }
+    }
+    if (pendingTransitionCallback) {
+      const callback = pendingTransitionCallback;
+      const delay = pausedTransitionRemaining ?? Math.max(0, pendingTransitionDeadline - performance.now());
+      pausedTransitionRemaining = null;
+      schedulePendingTransition(callback, delay);
+    }
+    if (previousSettingsFocus instanceof HTMLElement && previousSettingsFocus.isConnected) previousSettingsFocus.focus();
+    previousSettingsFocus = null;
+  }
+
+  function playInterfaceSound() {
+    soundController.playInterface();
   }
 
   function beginStage(stageId = stage.id) {
@@ -343,6 +666,8 @@
     if (!stage) return;
     const selectedEnemy = stage.enemyTypes[Math.floor(Math.random() * stage.enemyTypes.length)];
     currentEnemy = stage.enemies[selectedEnemy];
+    stageStartedAt = performance.now();
+    stagePausedTimeMs = 0;
     ensureAudio();
     lives = stage.initialLives;
     displayedLives = stage.initialLives;
@@ -359,12 +684,10 @@
     ui.enemySprite.src = currentEnemy.sprite;
     ui.enemySprite.alt = currentEnemy.name;
     ui.enemyActor.setAttribute('aria-label', currentEnemy.name);
+    ui.enemyNameLabel.textContent = currentEnemy.name;
     ui.enemyActor.classList.toggle('boss', stage.isBoss);
     setEnemyPose('normal');
     document.getElementById('roundLabel').textContent = stage.isSecret ? 'DESAFIO SECRETO' : `FASE ${stage.number}`;
-    document.getElementById('selectionPrompt').textContent = stage.cardMode === 'romaji'
-      ? 'Qual é o romaji do kana destacado?'
-      : 'Qual kana corresponde ao som anunciado?';
     ui.optionCards.setAttribute('aria-label', stage.cardMode === 'romaji'
       ? 'Opções de romaji'
       : 'Opções de kana');
@@ -386,9 +709,9 @@
     ui.enemyHealthLabel.textContent = `${enemyHealth} / ${stage.enemyHealth}`;
     ui.enemyHealthBar.style.width = `${(enemyHealth / stage.enemyHealth) * 100}%`;
     ui.roundLabel.textContent = `ATAQUE ${attackCount}`;
-    ui.stepLabel.textContent = `${stepIndex} / ${currentSequence.length}`;
+    ui.comboLabel.textContent = `×${completedSequenceStreak}`;
+    ui.comboLabel.setAttribute('aria-label', `Combo ${completedSequenceStreak}`);
     renderSequence();
-    renderProgress();
   }
 
   function renderSequence() {
@@ -396,6 +719,7 @@
       const symbolData = stage.symbols.find(symbol => symbol.kana === kana);
       return stage.cardMode !== 'romaji' ? symbolData.romaji : kana;
     });
+    layoutTargetSequence(labels.length);
     const needsRebuild = ui.targetSequence.children.length !== labels.length
       || labels.some((label, index) => ui.targetSequence.children[index]?.dataset.label !== label);
     if (needsRebuild) {
@@ -430,15 +754,24 @@
     });
   }
 
-  function renderProgress() {
-    ui.stepProgress.replaceChildren();
-    currentSequence.forEach((_, index) => {
-      const pip = document.createElement('span');
-      pip.className = 'step-pip';
-      if (index < stepIndex) pip.classList.add('done');
-      else if (index === stepIndex) pip.classList.add('current');
-      ui.stepProgress.appendChild(pip);
-    });
+  function layoutTargetSequence(sequenceLength) {
+    if (window.innerWidth < 900 || sequenceLength <= 0) {
+      ui.targetSequence.style.removeProperty('--seal-size');
+      ui.targetSequence.style.removeProperty('--seal-font-size');
+      ui.targetSequence.style.removeProperty('gap');
+      ui.targetSequence.style.removeProperty('width');
+      return;
+    }
+    const arenaWidth = ui.arena.clientWidth;
+    if (!arenaWidth) return;
+    const gap = Math.min(7, Math.max(2, arenaWidth * 0.0045));
+    const maxWidth = arenaWidth * 0.39;
+    // Base every sequence on the seven-seal case so short sequences never grow.
+    const sealSize = Math.max(44, Math.min(arenaWidth * 0.09, (maxWidth - gap * 6) / 7));
+    ui.targetSequence.style.setProperty('--seal-size', `${sealSize}px`);
+    ui.targetSequence.style.setProperty('--seal-font-size', `${sealSize * 0.55}px`);
+    ui.targetSequence.style.gap = `${gap}px`;
+    ui.targetSequence.style.width = `${sealSize * sequenceLength + gap * (sequenceLength - 1)}px`;
   }
 
   function beginEnemyAttack() {
@@ -470,10 +803,7 @@
     showOptions();
     ui.timerLabel.textContent = `${sequenceTimeLimit.toFixed(1)}s`;
     ui.timerLabel.style.setProperty('--time-progress', '100');
-    pendingTransitionTimeout = window.setTimeout(() => {
-      pendingTransitionTimeout = null;
-      startTimer();
-    }, reducedMotion ? 0 : 720);
+    schedulePendingTransition(startTimer, reducedMotion ? 0 : 720);
   }
 
   function pickOptions() {
@@ -522,7 +852,7 @@
     deadline = performance.now() + sequenceTimeLimit * 1000;
     ui.timerLabel.classList.remove('urgent');
     updateTimer();
-    timerInterval = window.setInterval(updateTimer, 50);
+    timerInterval = window.setInterval(updateTimer, 100);
   }
 
   function stopTimer() {
@@ -540,7 +870,7 @@
   }
 
   function handleChoice(option, selectedCard) {
-    if (locked || inputAnimating || timerInterval === null) return;
+    if (locked || inputAnimating || soundManagerOpen || timerInterval === null) return;
     if (performance.now() >= deadline) {
       resolveMistake('O tempo acabou! O inimigo acertou o ataque.');
       return;
@@ -559,9 +889,11 @@
     inputAnimating = true;
     ui.targetSequence.children[stepIndex]?.classList.add(isFinalHit ? 'finisher' : 'cut');
     animateActor(ui.playerActor, isFinalHit ? 'blocking' : 'cut');
-    if (!isFinalHit) setPlayerPose(`hit${(stepIndex % 3) + 1}`);
+    if (!isFinalHit) {
+      setPlayerPose(`hit${(stepIndex % 3) + 1}`);
+    }
     if (isFinalHit) playFinisherSound();
-    else playDrumHit(stepIndex === 0);
+    else playSealSound();
     stepIndex++;
     updateBattleHud();
     if (stepIndex >= currentSequence.length) {
@@ -571,8 +903,7 @@
     }
     ui.feedback.textContent = 'Boa! Próximo kana.';
     ui.feedback.className = 'battle-feedback good';
-    pendingTransitionTimeout = window.setTimeout(() => {
-      pendingTransitionTimeout = null;
+    schedulePendingTransition(() => {
       if (locked) return;
       inputAnimating = false;
       showOptions();
@@ -586,6 +917,9 @@
       window.clearTimeout(pendingTransitionTimeout);
       pendingTransitionTimeout = null;
     }
+    pendingTransitionCallback = null;
+    pendingTransitionDeadline = 0;
+    pausedTransitionRemaining = null;
     locked = true;
     inputAnimating = true;
     lastWrongAnswer = true;
@@ -605,8 +939,12 @@
     ui.arena.classList.add('player-damage');
     updateBattleHud();
 
-    pendingTransitionTimeout = window.setTimeout(() => {
-      pendingTransitionTimeout = null;
+    if (lives <= 0) {
+      finishStage(false);
+      return;
+    }
+
+    schedulePendingTransition(() => {
       if (lives <= 0) {
         finishStage(false);
       } else {
@@ -635,14 +973,10 @@
     updateBattleHud();
 
     if (enemyHealth <= 0) {
-      pendingTransitionTimeout = window.setTimeout(() => {
-        pendingTransitionTimeout = null;
-        finishStage(true);
-      }, 750);
+      finishStage(true);
       return;
     }
-    pendingTransitionTimeout = window.setTimeout(() => {
-      pendingTransitionTimeout = null;
+    schedulePendingTransition(() => {
       attackCount++;
       beginEnemyAttack();
     }, 850);
@@ -654,33 +988,73 @@
     if (!victory) setPlayerPose('defeated');
     const perfectRun = victory && !lastWrongAnswer;
     const earnedStar = perfectRun && !progress.perfectStages.includes(stage.id);
+    const elapsedMs = Math.max(0, performance.now() - stageStartedAt - stagePausedTimeMs);
+    let nextStage = null;
+    const records = progress.records || (progress.records = {});
+    const previousRecord = records[stage.id] || null;
+    let newAttackRecord = false;
+    let newTimeRecord = false;
     if (victory) {
       if (!progress.completedStages.includes(stage.id)) progress.completedStages.push(stage.id);
       if (perfectRun && !progress.perfectStages.includes(stage.id)) {
         progress.perfectStages.push(stage.id);
         progress.stars++;
       }
+      newAttackRecord = !previousRecord || attackCount < previousRecord.attacks;
+      newTimeRecord = !previousRecord || elapsedMs < previousRecord.durationMs;
+      records[stage.id] = {
+        attacks: newAttackRecord ? attackCount : previousRecord.attacks,
+        durationMs: newTimeRecord ? elapsedMs : previousRecord.durationMs
+      };
       saveProgress();
+      nextStage = getNextStage();
       ui.resultIcon.textContent = perfectRun ? '★' : '⚔';
-      ui.resultIcon.classList.toggle('defeat', !perfectRun);
+      ui.resultIcon.classList.remove('defeat');
       ui.resultEyebrow.textContent = perfectRun ? 'VITÓRIA PERFEITA' : 'FASE CONCLUÍDA';
       ui.resultTitle.textContent = perfectRun ? 'Perfeito!' : 'Você venceu!';
       ui.resultMessage.textContent = !perfectRun
-        ? `${currentEnemy.name} foi derrotado. Tente novamente sem perder vida para conquistar a estrela.`
+        ? `${currentEnemy.name} foi derrotado.`
         : earnedStar
-          ? 'Você aparou todos os ataques sem perder vida. A estrela é sua!'
-          : 'Você repetiu a fase perfeitamente. A estrela desta fase já foi conquistada.';
+          ? 'Você venceu sem perder vida. A estrela é sua!'
+          : 'Você venceu sem perder vida. A estrela desta fase já foi conquistada.';
       ui.earnedStar.classList.toggle('hidden', !perfectRun);
     } else {
       ui.resultIcon.textContent = '🛡️';
       ui.resultIcon.classList.add('defeat');
       ui.resultEyebrow.textContent = 'FIM DE COMBATE';
       ui.resultTitle.textContent = 'Seu grupo precisa descansar';
-      ui.resultMessage.textContent = `Pratique as famílias desta fase e tente novamente. Seu combo também recomeçará.`;
+      ui.resultMessage.textContent = 'Tente novamente para concluir a fase.';
       ui.earnedStar.classList.add('hidden');
     }
+    ui.resultAttacks.textContent = String(attackCount);
+    ui.resultDuration.textContent = formatPhaseTime(elapsedMs);
+    ui.resultRecord.textContent = victory && (newAttackRecord || newTimeRecord)
+      ? `Novo recorde${newAttackRecord && newTimeRecord ? ' de ataques e tempo' : newAttackRecord ? ' de ataques' : ' de tempo'}!`
+      : previousRecord
+        ? `Recorde: ${previousRecord.attacks} ataques · ${formatPhaseTime(previousRecord.durationMs)}`
+        : 'Seu recorde será registrado ao vencer a fase.';
+    ui.nextStageButton.dataset.stageId = nextStage?.stageId || '';
+    ui.nextStageButton.classList.toggle('hidden', !nextStage);
+    ui.nextStageButton.classList.toggle('primary-button', Boolean(nextStage));
+    ui.retryStage.classList.toggle('primary-button', !nextStage);
+    ui.retryStage.classList.toggle('secondary-button', Boolean(nextStage));
     ui.modal.classList.remove('hidden');
-    document.getElementById('retryStage').focus();
+    (nextStage ? ui.nextStageButton : ui.retryStage).focus();
+  }
+
+  function getNextStage() {
+    const stageIndex = hiraganaIsland.stages.findIndex(mapStage => mapStage.stageId === stage.id);
+    const nextStage = hiraganaIsland.stages[stageIndex + 1];
+    if (!nextStage) return null;
+    if (nextStage.type === 'secret' && progress.stars < regularStageIds.length) return null;
+    return nextStage;
+  }
+
+  function formatPhaseTime(durationMs) {
+    const totalSeconds = Math.floor(durationMs / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
   }
 
   function resetStageForRetry() {
@@ -692,13 +1066,72 @@
   document.getElementById('backToIslands').addEventListener('click', showIslands);
   document.getElementById('quitBattle').addEventListener('click', showStageMap);
   document.getElementById('retryStage').addEventListener('click', resetStageForRetry);
-  document.getElementById('resultToMap').addEventListener('click', showStageMap);
-  document.getElementById('soundToggle').addEventListener('click', () => {
-    soundEnabled = !soundEnabled;
-    if (soundEnabled) ensureAudio();
-    else if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-    setSoundButton();
+  ui.nextStageButton.addEventListener('click', () => {
+    const nextStageId = ui.nextStageButton.dataset.stageId;
+    if (!nextStageId) return;
+    beginStage(nextStageId);
   });
+  document.getElementById('resultToMap').addEventListener('click', showStageMap);
+  function toggleAllSound() {
+    const enabled = !soundController.enabled;
+    soundController.setEnabled(enabled);
+    if (enabled) ensureAudio();
+    setSoundButton();
+  }
+  document.querySelectorAll('#soundToggle, #soundToggleModal, #soundToggleMenu').forEach(button => {
+    button.addEventListener('click', toggleAllSound);
+  });
+  document.querySelectorAll('#openSoundManager, #openSoundManagerMenu').forEach(button => {
+    button.addEventListener('click', () => {
+      playInterfaceSound();
+      openSoundManager();
+    });
+  });
+  ui.closeSoundManager.addEventListener('click', () => {
+    playInterfaceSound();
+    closeSoundManager();
+  });
+  ui.soundManager.addEventListener('pointerdown', event => {
+    if (event.target === ui.soundManager) closeSoundManager();
+  });
+  ui.soundManager.addEventListener('keydown', event => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeSoundManager();
+      return;
+    }
+    if (event.key !== 'Tab') return;
+    const controls = Array.from(ui.soundManager.querySelectorAll('button, input')).filter(element => !element.disabled);
+    const first = controls[0];
+    const last = controls[controls.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  });
+  Object.entries(ui.soundChannels).forEach(([channel, controls]) => {
+    controls.input.addEventListener('input', () => {
+      soundController.setVolume(channel, controls.input.value);
+      setSoundButton();
+    });
+  });
+  document.addEventListener('click', event => {
+    if (!soundController.enabled) return;
+    const control = event.target.closest('button, a[href], [role="button"]');
+    if (!control || control.matches('.option-card, .sound-manager button, #openSoundManager, #openSoundManagerMenu')) return;
+    playInterfaceSound();
+  });
+
+  window.addEventListener('resize', () => {
+    if (!screens.battle.classList.contains('hidden')) layoutTargetSequence(currentSequence.length);
+  });
+
+  const unlockMenuAudio = () => { if (soundController.enabled) ensureAudio(); };
+  document.addEventListener('pointerdown', unlockMenuAudio, { once: true, capture: true });
+  document.addEventListener('keydown', unlockMenuAudio, { once: true, capture: true });
 
   setSoundButton();
   updateProgressDisplay();

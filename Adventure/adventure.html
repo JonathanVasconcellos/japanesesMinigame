@@ -12,7 +12,10 @@
     <header class="topbar">
       <a class="back-link" href="../index.html" aria-label="Voltar ao menu principal">← Menu</a>
       <div class="brand">KANA QUEST <span>PROTÓTIPO</span></div>
-      <button id="soundToggle" class="sound-toggle" type="button" aria-pressed="true" aria-label="Desativar sons">♫</button>
+      <div class="sound-controls menu-sound-controls" role="group" aria-label="Controles de som">
+        <button id="soundToggleMenu" class="sound-toggle" type="button" aria-pressed="true" aria-label="Silenciar todos os sons">♫</button>
+        <button id="openSoundManagerMenu" class="sound-settings-button" type="button" aria-label="Abrir gerenciador de som" title="Som">⚙</button>
+      </div>
     </header>
 
     <section id="islandScreen" class="screen island-screen" aria-labelledby="islandTitle">
@@ -59,42 +62,65 @@
     </section>
 
     <section id="battleScreen" class="screen battle-screen hidden" aria-label="Combate">
-      <div class="battle-topline">
-        <button id="quitBattle" class="text-button" type="button">← Sair</button>
-        <span id="roundLabel" class="round-label">ATAQUE 1</span>
-        <span id="lifeDisplay" class="life-display" aria-label="3 vidas">♥ ♥ ♥</span>
-      </div>
-
-      <div class="arena">
-        <div class="fighter player-fighter" aria-label="Seu grupo">
-          <img id="playerSprite" class="fighter-art" src="assets/party-pose-1.webp" alt="" draggable="false">
-          <small>SEU GRUPO</small>
+      <div class="combat-area">
+        <div class="battle-topline">
+          <button id="quitBattle" class="text-button" type="button">← Sair</button>
+          <span id="roundLabel" class="round-label">ATAQUE 1</span>
+          <span id="lifeDisplay" class="life-display" aria-label="3 vidas">♥ ♥ ♥</span>
+          <div class="sound-controls" role="group" aria-label="Controles de som">
+            <button id="soundToggle" class="sound-toggle" type="button" aria-pressed="true" aria-label="Desativar sons">♫</button>
+            <button id="openSoundManager" class="sound-settings-button" type="button" aria-label="Abrir gerenciador de som" title="Som">⚙</button>
+          </div>
         </div>
-        <div id="targetSequence" class="target-sequence" aria-label="Sequência do ataque"></div>
-        <div class="fighter enemy-fighter" aria-label="Inimigo">
-          <img id="enemySprite" class="fighter-art" src="assets/oni-sprite.webp" alt="" draggable="false">
-          <small>ONI DA COSTA</small>
+
+        <div class="arena">
+          <div class="fighter player-fighter" aria-label="Seu grupo">
+            <img id="playerSprite" class="fighter-art" src="assets/party-pose-1.webp" alt="" draggable="false">
+          </div>
+          <div id="targetSequence" class="target-sequence" aria-label="Sequência do ataque"></div>
+          <div class="fighter enemy-fighter" aria-label="Inimigo">
+            <img id="enemySprite" class="fighter-art" src="assets/oni-sprite.webp" alt="" draggable="false">
+          </div>
+          <span id="timerLabel" class="timer-label" aria-label="Tempo restante">5.0s</span>
+          <div class="combo-display" aria-live="polite"><span>COMBO</span><strong id="comboLabel">×0</strong></div>
+          <div class="enemy-health-wrap" aria-label="Vida do inimigo">
+            <span id="enemyNameLabel" class="enemy-name">ONI DA COSTA</span>
+            <div class="health-track"><div id="enemyHealthBar" class="health-fill"></div></div>
+            <strong id="enemyHealthLabel">5 / 5</strong>
+          </div>
+          <span id="enemyAction" class="sr-only" aria-live="polite">O inimigo prepara o ataque!</span>
+          <span id="battleFeedback" class="sr-only" aria-live="polite"></span>
         </div>
-      </div>
-
-      <div class="enemy-health-wrap">
-        <div class="health-caption"><span>VIDA DO INIMIGO</span><strong id="enemyHealthLabel">5 / 5</strong></div>
-        <div class="health-track"><div id="enemyHealthBar" class="health-fill"></div></div>
-      </div>
-
-      <div class="challenge-panel">
-        <div class="challenge-heading"><span id="enemyAction">O inimigo prepara o ataque!</span><span id="timerLabel" class="timer-label">5.0s</span></div>
-        <div class="progress-caption"><span>SELOS DO ATAQUE</span><span id="stepLabel">0 / 5</span></div>
-        <div id="stepProgress" class="step-progress" aria-hidden="true"></div>
-        <p id="battleFeedback" class="battle-feedback" aria-live="polite">Toque nas cartas correspondentes, na ordem.</p>
       </div>
 
       <div class="answer-dock">
-        <div class="dock-heading"><span>ESCOLHA O SOM CORRETO</span><span id="selectionPrompt">Qual é o romaji do kana destacado?</span></div>
         <div id="optionCards" class="option-cards" role="group" aria-label="Opções de resposta"></div>
-        <div class="dock-actions"><span class="touch-hint">Toque em uma carta para responder</span></div>
       </div>
     </section>
+
+    <div id="soundManagerBackdrop" class="sound-manager-backdrop hidden">
+      <section class="sound-manager" role="dialog" aria-modal="true" aria-labelledby="soundManagerTitle">
+        <header class="sound-manager-header">
+          <h2 id="soundManagerTitle">Som</h2>
+          <div class="sound-manager-actions">
+            <button id="soundToggleModal" class="sound-toggle" type="button" aria-pressed="true" aria-label="Silenciar todos os sons">♫</button>
+            <button id="closeSoundManager" class="sound-manager-close" type="button" aria-label="Fechar gerenciador de som">×</button>
+          </div>
+        </header>
+        <div class="sound-channel">
+          <label for="soundMusicVolume">Música</label>
+          <div class="sound-volume-row"><input id="soundMusicVolume" type="range" min="0" max="1" step="0.01"><output id="soundMusicVolumeValue" for="soundMusicVolume">70%</output></div>
+        </div>
+        <div class="sound-channel">
+          <label for="soundEffectsVolume">Efeitos</label>
+          <div class="sound-volume-row"><input id="soundEffectsVolume" type="range" min="0" max="1" step="0.01"><output id="soundEffectsVolumeValue" for="soundEffectsVolume">70%</output></div>
+        </div>
+        <div class="sound-channel">
+          <label for="soundInterfaceVolume">Interface</label>
+          <div class="sound-volume-row"><input id="soundInterfaceVolume" type="range" min="0" max="1" step="0.01"><output id="soundInterfaceVolumeValue" for="soundInterfaceVolume">35%</output></div>
+        </div>
+      </section>
+    </div>
 
     <div id="battleModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
       <div class="result-card">
@@ -102,8 +128,17 @@
         <div id="resultEyebrow" class="eyebrow">FASE CONCLUÍDA</div>
         <h2 id="resultTitle">Vitória!</h2>
         <p id="resultMessage"></p>
+        <div class="run-stats" aria-label="Resultado da fase">
+          <div><span>ATAQUES</span><strong id="resultAttacks">0</strong></div>
+          <div><span>TEMPO</span><strong id="resultDuration">00:00</strong></div>
+        </div>
+        <p id="resultRecord" class="record-note"></p>
         <div class="earned-star" id="earnedStar"><span aria-hidden="true">★</span> Estrela perfeita</div>
-        <div class="result-actions"><button id="retryStage" class="primary-button" type="button">Jogar novamente</button><button id="resultToMap" class="secondary-button" type="button">Voltar às fases</button></div>
+        <div class="result-actions">
+          <button id="nextStage" class="primary-button hidden" type="button">Próxima fase</button>
+          <button id="retryStage" class="secondary-button" type="button">Tentar de novo</button>
+          <button id="resultToMap" class="secondary-button" type="button">Voltar às fases</button>
+        </div>
       </div>
     </div>
     <script src="adventure-data.js"></script>
