@@ -255,8 +255,13 @@
       const star = document.createElement('span');
       star.className = `node-star${wasPerfect ? '' : ' unearned'}`;
       star.textContent = wasPerfect ? '★' : '☆';
-      star.setAttribute('aria-label', wasPerfect ? 'Estrela perfeita conquistada' : 'Estrela ainda não conquistada');
-      listItem.append(button, star);
+      star.setAttribute('aria-hidden', 'true');
+      button.appendChild(star);
+      if (button.hasAttribute('aria-label')) {
+        const starDescription = wasPerfect ? 'estrela perfeita conquistada' : 'estrela ainda não conquistada';
+        button.setAttribute('aria-label', `${button.getAttribute('aria-label')}, ${starDescription}`);
+      }
+      listItem.appendChild(button);
       ui.stageNodes.appendChild(listItem);
     });
   }
