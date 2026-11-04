@@ -47,23 +47,13 @@
 
     <section id="stageScreen" class="screen stage-screen hidden" aria-labelledby="stageTitle">
       <div class="map-heading">
-        <button id="backToIslands" class="text-button" type="button">← Ilhas</button>
+        <button id="backToIslands" class="map-back" type="button" aria-label="Voltar às ilhas">←</button>
         <div class="eyebrow">ILHA HIRAGANA</div>
         <h1 id="stageTitle">Trilha das Famílias</h1>
         <span class="map-star-total"><span aria-hidden="true">★</span> <strong id="mapStarCount">0</strong></span>
       </div>
       <div class="island-map" aria-label="Mapa de fases da Ilha Hiragana">
-        <div class="map-scenery scenery-one" aria-hidden="true">🌳</div>
-        <div class="map-scenery scenery-two" aria-hidden="true">🌲</div>
-        <div class="map-scenery scenery-three" aria-hidden="true">🌿</div>
-        <div class="map-scenery scenery-four" aria-hidden="true">🌳</div>
-        <svg class="map-road" viewBox="0 0 400 1000" preserveAspectRatio="none" aria-hidden="true">
-          <path class="road-shadow" d="M72 840 C150 840 250 840 328 840 C350 800 250 740 168 720 L260 720 C300 680 180 620 72 600 L328 600 C370 560 250 500 168 480 L260 480 C300 440 180 380 72 360 L328 360 C370 320 250 260 168 240 L260 240 C300 170 320 95 336 70" />
-          <path class="road-fill" d="M72 840 C150 840 250 840 328 840 C350 800 250 740 168 720 L260 720 C300 680 180 620 72 600 L328 600 C370 560 250 500 168 480 L260 480 C300 440 180 380 72 360 L328 360 C370 320 250 260 168 240 L260 240 C300 170 320 95 336 70" />
-          <path class="road-center" d="M72 840 C150 840 250 840 328 840 C350 800 250 740 168 720 L260 720 C300 680 180 620 72 600 L328 600 C370 560 250 500 168 480 L260 480 C300 440 180 380 72 360 L328 360 C370 320 250 260 168 240 L260 240 C300 170 320 95 336 70" />
-        </svg>
         <ol id="stageNodes" class="stage-nodes" aria-label="Fases"></ol>
-        <div class="map-water" aria-hidden="true"></div>
       </div>
       <p id="stageNote" class="stage-note" aria-live="polite">Carregando sprites das fases…</p>
     </section>

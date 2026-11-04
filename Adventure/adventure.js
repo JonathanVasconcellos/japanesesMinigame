@@ -113,6 +113,7 @@
       ui.stageNote.textContent = failedSpriteAssets.size
         ? 'Alguns sprites não carregaram e usarão uma imagem alternativa. Conclua sem perder vida para ganhar a estrela; as 12 estrelas liberam o desafio secreto.'
         : 'Conclua sem perder vida para ganhar a estrela. As 12 estrelas liberam o desafio secreto.';
+      ui.stageNote.classList.toggle('warning', failedSpriteAssets.size > 0);
       updateProgressDisplay();
     });
   }
@@ -164,6 +165,7 @@
   function showScreen(name) {
     stopTimer();
     inputAnimating = false;
+    document.querySelector('.adventure-app').classList.toggle('showing-stage-map', name === 'stage');
     if (pendingTransitionTimeout !== null) {
       window.clearTimeout(pendingTransitionTimeout);
       pendingTransitionTimeout = null;
@@ -225,13 +227,6 @@
       const statusIcon = document.createElement('span');
       statusIcon.className = 'stage-status-icon';
       statusIcon.setAttribute('aria-hidden', 'true');
-      if (mapStage.type === 'boss') {
-        const kindIcon = document.createElement('span');
-        kindIcon.className = 'stage-kind-icon';
-        kindIcon.textContent = '🐉';
-        kindIcon.setAttribute('aria-hidden', 'true');
-        button.appendChild(kindIcon);
-      }
       button.appendChild(statusIcon);
       if (isPlayable && unlocked && spriteAssetsReady) {
         button.classList.add(wasCompleted ? 'completed' : 'available');
@@ -712,6 +707,7 @@
     failedSpriteAssets.add('assets/party-pose-1.webp');
     ui.playerSprite.src = 'assets/party-sprite.webp';
     ui.stageNote.textContent = 'Alguns sprites não carregaram; imagens alternativas serão usadas. Conclua sem perder vida para ganhar a estrela. As 12 estrelas liberam o desafio secreto.';
+    ui.stageNote.classList.add('warning');
     updateProgressDisplay();
   });
 })();
