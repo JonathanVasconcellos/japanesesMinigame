@@ -64,10 +64,12 @@
 
   const playerPoses = {
     idle: 'assets/party-pose-1.webp',
-    cut: 'assets/party-pose-2.webp',
-    guard: 'assets/party-pose-3.webp',
-    block: 'assets/party-pose-4.webp',
-    complete: 'assets/party-pose-5.webp'
+    hit1: 'assets/party-pose-2.webp',
+    hit2: 'assets/party-pose-3.webp',
+    hit3: 'assets/party-pose-4.webp',
+    damaged: 'assets/party-pose-5.webp',
+    finisher: 'assets/party-pose-6.webp',
+    defeated: 'assets/party-pose-7.webp'
   };
 
   function preloadSprite(source) {
@@ -562,7 +564,7 @@
     inputAnimating = true;
     ui.targetSequence.children[stepIndex]?.classList.add(isFinalHit ? 'finisher' : 'cut');
     animateActor(ui.playerActor, isFinalHit ? 'blocking' : 'cut');
-    setPlayerPose(isFinalHit ? 'block' : 'cut');
+    if (!isFinalHit) setPlayerPose(`hit${(stepIndex % 3) + 1}`);
     if (isFinalHit) playFinisherSound();
     else playDrumHit(stepIndex === 0);
     stepIndex++;
@@ -602,7 +604,7 @@
     animateActor(ui.enemyActor, 'attack-lunge');
     setEnemyPose('attack');
     animateActor(ui.playerActor, 'damaged');
-    setPlayerPose('guard');
+    setPlayerPose('damaged');
     ui.arena.classList.remove('player-damage');
     void ui.arena.offsetWidth;
     ui.arena.classList.add('player-damage');
@@ -630,7 +632,7 @@
     ui.feedback.textContent = `Última batida! ${currentEnemy.name} recebeu ${damage} de dano.`;
     ui.feedback.className = 'battle-feedback good';
     animateActor(ui.enemyActor, 'recoil');
-    setPlayerPose('complete');
+    setPlayerPose('finisher');
     animateActor(ui.playerActor, 'counter-attack');
     ui.arena.classList.remove('enemy-impact');
     void ui.arena.offsetWidth;
@@ -654,6 +656,7 @@
   function finishStage(victory) {
     stopTimer();
     locked = true;
+    if (!victory) setPlayerPose('defeated');
     const perfectRun = victory && !lastWrongAnswer;
     const earnedStar = perfectRun && !progress.perfectStages.includes(stage.id);
     if (victory) {
