@@ -790,7 +790,11 @@
       return stage.symbols[Math.floor(Math.random() * stage.symbols.length)].kana;
     });
     const secondsPerSeal = Math.max(0.1, Number(stage.secondsPerSeal) || 1);
-    sequenceTimeLimit = currentSequence.length * secondsPerSeal;
+    // Nos chefes, combos mais altos apertam o prazo; o limite impede que vire impossível.
+    const comboTimeFactor = stage.isBoss
+      ? Math.max(0.6, 1 / (1 + completedSequenceStreak * 0.08))
+      : 1;
+    sequenceTimeLimit = currentSequence.length * secondsPerSeal * comboTimeFactor;
     ui.targetSequence.replaceChildren();
     ui.enemyAction.textContent = completedSequenceStreak >= 4
       ? `Combo x${completedSequenceStreak}! Próxima sequência causa 2 de dano.`
