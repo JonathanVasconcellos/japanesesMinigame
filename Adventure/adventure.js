@@ -53,6 +53,9 @@
     }
   };
 
+  // Keep the result dialog outside the battle app, whose mobile layout clips overflow.
+  document.body.appendChild(ui.modal);
+
   let audioContext = null;
   let musicGain = null;
   let effectsGain = null;
