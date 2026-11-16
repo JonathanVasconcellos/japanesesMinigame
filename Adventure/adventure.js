@@ -1003,6 +1003,7 @@
     let newAttackRecord = false;
     let newTimeRecord = false;
     if (victory) {
+      [ui.resultIcon, ui.resultEyebrow, ui.resultMessage, ui.resultAttacks.closest('.run-stats'), ui.resultRecord].forEach(element => element.classList.remove('hidden'));
       if (!progress.completedStages.includes(stage.id)) progress.completedStages.push(stage.id);
       if (perfectRun && !progress.perfectStages.includes(stage.id)) {
         progress.perfectStages.push(stage.id);
@@ -1027,11 +1028,8 @@
           : 'Você venceu sem perder vida. A estrela desta fase já foi conquistada.';
       ui.earnedStar.classList.toggle('hidden', !perfectRun);
     } else {
-      ui.resultIcon.textContent = '🛡️';
-      ui.resultIcon.classList.add('defeat');
-      ui.resultEyebrow.textContent = 'FIM DE COMBATE';
-      ui.resultTitle.textContent = 'Seu grupo precisa descansar';
-      ui.resultMessage.textContent = 'Tente novamente para concluir a fase.';
+      [ui.resultIcon, ui.resultEyebrow, ui.resultMessage, ui.resultAttacks.closest('.run-stats'), ui.resultRecord].forEach(element => element.classList.add('hidden'));
+      ui.resultTitle.textContent = 'Derrota';
       ui.earnedStar.classList.add('hidden');
     }
     ui.resultAttacks.textContent = String(attackCount);
@@ -1042,7 +1040,8 @@
         ? `Recorde: ${previousRecord.attacks} ataques · ${formatPhaseTime(previousRecord.durationMs)}`
         : 'Seu recorde será registrado ao vencer a fase.';
     ui.nextStageButton.dataset.stageId = nextStage?.stageId || '';
-    ui.nextStageButton.classList.toggle('hidden', !nextStage);
+    ui.nextStageButton.classList.toggle('hidden', !victory || !nextStage);
+    document.getElementById('resultToMap').classList.remove('hidden');
     ui.nextStageButton.classList.toggle('primary-button', Boolean(nextStage));
     ui.retryStage.classList.toggle('primary-button', !nextStage);
     ui.retryStage.classList.toggle('secondary-button', Boolean(nextStage));
