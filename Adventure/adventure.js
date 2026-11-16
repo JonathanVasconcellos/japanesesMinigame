@@ -42,6 +42,7 @@
     resultDuration: document.getElementById('resultDuration'),
     resultRecord: document.getElementById('resultRecord'),
     nextStageButton: document.getElementById('nextStage'),
+    retryStage: document.getElementById('retryStage'),
     earnedStar: document.getElementById('earnedStar'),
     soundManager: document.getElementById('soundManagerBackdrop'),
     openSoundManager: document.getElementById('openSoundManager'),
