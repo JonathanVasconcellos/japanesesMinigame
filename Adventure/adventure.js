@@ -17,6 +17,12 @@
     mapStarCount: document.getElementById('mapStarCount'),
     stageNodes: document.getElementById('stageNodes'),
     stageNote: document.getElementById('stageNote'),
+    stageDetailsModal: document.getElementById('stageDetailsModal'),
+    stageDetailsNumber: document.getElementById('stageDetailsNumber'),
+    stageDetailsTitle: document.getElementById('stageDetailsTitle'),
+    stageDetailsKana: document.getElementById('stageDetailsKana'),
+    stageDetailsCombo: document.getElementById('stageDetailsCombo'),
+    stageDetailsTime: document.getElementById('stageDetailsTime'),
     targetSequence: document.getElementById('targetSequence'),
     timerLabel: document.getElementById('timerLabel'),
     comboLabel: document.getElementById('comboLabel'),
@@ -56,6 +62,7 @@
 
   // Keep the result dialog outside the battle app, whose mobile layout clips overflow.
   document.body.appendChild(ui.modal);
+  document.body.appendChild(ui.stageDetailsModal);
 
   let audioContext = null;
   let musicGain = null;
@@ -245,6 +252,10 @@
   let locked = false;
   let lastWrongAnswer = false;
   let completedSequenceStreak = 0;
+  let bestComboThisRun = 0;
+  let finisherSoundDurationMs = 0;
+  let selectedStageId = stage.id;
+  let stageDetailReturnFocus = null;
   let spriteAssetsReady = false;
   const failedSpriteAssets = new Set();
   const preloadedSprites = new Map();
@@ -339,7 +350,7 @@
         const attacks = Number(record.attacks);
         const durationMs = Number(record.durationMs);
         if (Number.isInteger(attacks) && attacks > 0 && Number.isFinite(durationMs) && durationMs >= 0) {
-          savedProgress.records[id] = { attacks, durationMs };
+          savedProgress.records[id] = { attacks, durationMs, bestCombo: Math.max(0, Number(record.bestCombo) || 0) };
         }
       });
       savedProgress.stars = savedProgress.perfectStages.length;
@@ -456,7 +467,7 @@
         button.setAttribute('aria-label', isSecret
           ? 'Desafio secreto, disponível'
           : `Fase ${mapStage.number}${mapStage.type === 'boss' ? ', chefe' : ''}, ${wasCompleted ? 'concluída' : 'disponível'}`);
-        button.addEventListener('click', () => beginStage(mapStage.stageId));
+        button.addEventListener('click', () => showStageDetails(mapStage.stageId, button));
       } else if (isPlayable && unlocked) {
         button.disabled = true;
         button.classList.add('loading');
@@ -483,6 +494,28 @@
       listItem.appendChild(button);
       ui.stageNodes.appendChild(listItem);
     });
+  }
+
+  function showStageDetails(stageId, sourceButton) {
+    const selectedStage = content.stages[stageId];
+    if (!selectedStage) return;
+    selectedStageId = stageId;
+    stageDetailReturnFocus = sourceButton || document.activeElement;
+    const mapStage = hiraganaIsland.stages.find(item => item.stageId === stageId);
+    const record = progress.records[stageId];
+    ui.stageDetailsNumber.textContent = `FASE ${mapStage?.number ?? selectedStage.number}${selectedStage.isBoss ? ' · CHEFE' : ''}`;
+    ui.stageDetailsTitle.textContent = selectedStage.name;
+    ui.stageDetailsKana.textContent = selectedStage.symbols.map(symbol => symbol.kana).join(' ');
+    ui.stageDetailsCombo.textContent = record?.bestCombo ? `×${record.bestCombo}` : '—';
+    ui.stageDetailsTime.textContent = record ? formatPhaseTime(record.durationMs) : '—';
+    ui.stageDetailsModal.classList.remove('hidden');
+    document.getElementById('startStageCombat').focus();
+  }
+
+  function closeStageDetails() {
+    ui.stageDetailsModal.classList.add('hidden');
+    if (stageDetailReturnFocus instanceof HTMLElement && stageDetailReturnFocus.isConnected) stageDetailReturnFocus.focus();
+    stageDetailReturnFocus = null;
   }
 
   function ensureAudio() {
@@ -563,6 +596,8 @@
 
   function playFinisherSound() {
     soundController.play('finisher');
+    const duration = soundController.samples.finisher.duration;
+    return Math.max(520, Number.isFinite(duration) && duration > 0 ? duration * 1000 + 80 : 850);
   }
 
   function playErrorSound() {
@@ -680,6 +715,7 @@
     currentSequence = [];
     attackCount = 1;
     completedSequenceStreak = 0;
+    bestComboThisRun = 0;
     locked = false;
     lastWrongAnswer = false;
     inputAnimating = false;
@@ -780,6 +816,7 @@
 
   function beginEnemyAttack() {
     stopTimer();
+    finisherSoundDurationMs = 0;
     inputAnimating = false;
     ui.arena.classList.remove('player-damage', 'enemy-impact');
     animateActor(ui.enemyActor, 'attack-windup');
@@ -900,7 +937,7 @@
     if (!isFinalHit) {
       setPlayerPose(`hit${(stepIndex % 3) + 1}`);
     }
-    if (isFinalHit) playFinisherSound();
+    if (isFinalHit) finisherSoundDurationMs = playFinisherSound();
     else playSealSound();
     stepIndex++;
     updateBattleHud();
@@ -948,7 +985,7 @@
     updateBattleHud();
 
     if (lives <= 0) {
-      finishStage(false);
+      schedulePendingTransition(() => finishStage(false), 520);
       return;
     }
 
@@ -966,6 +1003,7 @@
     locked = true;
     inputAnimating = false;
     completedSequenceStreak++;
+    bestComboThisRun = Math.max(bestComboThisRun, completedSequenceStreak);
     const damage = completedSequenceStreak >= 5 ? 2 : stage.damagePerCompletedSequence;
     enemyHealth = Math.max(0, enemyHealth - damage);
     setEnemyPose(enemyHealth <= 0 ? 'defeated' : 'damage');
@@ -981,7 +1019,11 @@
     updateBattleHud();
 
     if (enemyHealth <= 0) {
-      finishStage(true);
+      const actionDuration = Math.max(
+        reducedMotion ? 0 : 480,
+        soundController.enabled ? finisherSoundDurationMs : 0
+      );
+      schedulePendingTransition(() => finishStage(true), actionDuration);
       return;
     }
     schedulePendingTransition(() => {
@@ -1013,7 +1055,8 @@
       newTimeRecord = !previousRecord || elapsedMs < previousRecord.durationMs;
       records[stage.id] = {
         attacks: newAttackRecord ? attackCount : previousRecord.attacks,
-        durationMs: newTimeRecord ? elapsedMs : previousRecord.durationMs
+        durationMs: newTimeRecord ? elapsedMs : previousRecord.durationMs,
+        bestCombo: Math.max(bestComboThisRun, previousRecord?.bestCombo || 0)
       };
       saveProgress();
       nextStage = getNextStage();
@@ -1023,10 +1066,9 @@
       ui.resultTitle.textContent = perfectRun ? 'Perfeito!' : 'Você venceu!';
       ui.resultMessage.textContent = !perfectRun
         ? `${currentEnemy.name} foi derrotado.`
-        : earnedStar
-          ? 'Você venceu sem perder vida. A estrela é sua!'
-          : 'Você venceu sem perder vida. A estrela desta fase já foi conquistada.';
-      ui.earnedStar.classList.toggle('hidden', !perfectRun);
+        : '';
+      ui.resultMessage.classList.toggle('hidden', perfectRun);
+      ui.earnedStar.classList.add('hidden');
     } else {
       [ui.resultIcon, ui.resultEyebrow, ui.resultMessage, ui.resultAttacks.closest('.run-stats'), ui.resultRecord].forEach(element => element.classList.add('hidden'));
       ui.resultTitle.textContent = 'Derrota';
@@ -1071,6 +1113,18 @@
 
   document.getElementById('hiraganaIsland').addEventListener('click', showStageMap);
   document.getElementById('backToIslands').addEventListener('click', showIslands);
+  document.getElementById('startStageCombat').addEventListener('click', () => {
+    const stageId = selectedStageId;
+    closeStageDetails();
+    beginStage(stageId);
+  });
+  document.getElementById('closeStageDetails').addEventListener('click', closeStageDetails);
+  ui.stageDetailsModal.addEventListener('click', event => {
+    if (event.target === ui.stageDetailsModal) closeStageDetails();
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !ui.stageDetailsModal.classList.contains('hidden')) closeStageDetails();
+  });
   document.getElementById('quitBattle').addEventListener('click', showStageMap);
   document.getElementById('retryStage').addEventListener('click', resetStageForRetry);
   ui.nextStageButton.addEventListener('click', () => {
